@@ -8,11 +8,12 @@ import re
 import time
 import logging
 import io
+import threading
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any, Dict, Optional, Tuple, List
 
-from flask import Flask, jsonify, request, send_from_directory, Response
+from flask import Flask, jsonify, request, send_from_directory, Response, g, has_request_context
 from flask_cors import CORS
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -59,6 +60,37 @@ CORS(
 
 serializer = URLSafeTimedSerializer(APP_SECRET, salt=TOKEN_SALT)
 
+
+@app.teardown_appcontext
+def _close_db_connection(exc: Optional[Exception]):
+    """Fecha a conexão cacheada do SQLite ao final do request."""
+    conn = getattr(g, "_db_conn", None)
+    if conn is not None:
+        try:
+            conn.close()
+        finally:
+            g._db_conn = None
+
+# =====================================================
+# REALTIME (SSE) - usado pelo dashboard.html
+# =====================================================
+# O front abre um EventSource em /api/events (com ?token=...)
+# e espera eventos "hello" e "data_updated".
+
+_events_cond = threading.Condition()
+_events_seq = 0
+
+def publish_data_updated() -> None:
+    """Sinaliza (de forma leve) que houve mudança em dados.
+
+    Implementação: um contador global; clientes SSE ficam aguardando e
+    recebem um evento quando o contador muda.
+    """
+    global _events_seq
+    with _events_cond:
+        _events_seq += 1
+        _events_cond.notify_all()
+
 # =====================================================
 # HELPERS
 # =====================================================
@@ -86,11 +118,17 @@ def format_cnpj(cnpj: str) -> str:
 # =====================================================
 def get_db_connection() -> sqlite3.Connection:
     """
-    Conexão SQLite resiliente:
-    - WAL para reduzir lock
-    - busy_timeout
-    - retries com backoff
+    Conexão SQLite resiliente e *cacheada por request*:
+    - Em requisições HTTP, reutiliza a mesma conexão via flask.g (reduz overhead e melhora latência)
+    - Fora de request (ex.: init_db), cria uma conexão nova normal
+    - WAL + busy_timeout + retries com backoff para reduzir locks
     """
+    # Cache por request (Flask)
+    if has_request_context():
+        cached = getattr(g, "_db_conn", None)
+        if cached is not None:
+            return cached
+
     for attempt in range(5):
         try:
             conn = sqlite3.connect(
@@ -106,12 +144,47 @@ def get_db_connection() -> sqlite3.Connection:
             conn.execute("PRAGMA synchronous = NORMAL")
             conn.execute("PRAGMA busy_timeout = 8000")  # 8s
 
+            # pragmas de performance (seguros)
+            conn.execute("PRAGMA temp_store = MEMORY")
+            conn.execute("PRAGMA cache_size = -20000")  # ~20MB (valor negativo = KB)
+
+            if has_request_context():
+                g._db_conn = conn
             return conn
         except sqlite3.OperationalError as e:
             if is_db_locked_error(e) and attempt < 4:
                 time.sleep(0.12 * (2 ** attempt))
                 continue
             raise
+        except sqlite3.OperationalError as e:
+            if is_db_locked_error(e) and attempt < 4:
+                time.sleep(0.12 * (2 ** attempt))
+                continue
+            raise
+
+# =====================================================
+# MIGRATIONS (SQLite - compatibilidade com DBs antigos)
+# =====================================================
+def _table_columns(cur: sqlite3.Cursor, table: str) -> set[str]:
+    try:
+        rows = cur.execute(f"PRAGMA table_info({table})").fetchall()
+        # row = (cid, name, type, notnull, dflt_value, pk)
+        return {r[1] for r in rows}
+    except Exception:
+        return set()
+
+def _ensure_column(cur: sqlite3.Cursor, table: str, col: str, col_type_sql: str) -> None:
+    cols = _table_columns(cur, table)
+    if col not in cols:
+        cur.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_type_sql}")
+
+def migrate_db(cur: sqlite3.Cursor) -> None:
+    """Migra o schema incrementalmente para evitar quebrar com DBs antigos."""
+    # fornecedores
+    _ensure_column(cur, "fornecedores", "inscricao_estadual", "TEXT")
+    _ensure_column(cur, "fornecedores", "status", "TEXT DEFAULT 'active'")
+    _ensure_column(cur, "fornecedores", "created_at", "TEXT DEFAULT (datetime('now'))")
+    _ensure_column(cur, "fornecedores", "updated_at", "TEXT DEFAULT (datetime('now'))")
 
 def seed_kv_defaults(cur: sqlite3.Cursor) -> None:
     def upsert(key: str, default_obj: Any) -> None:
@@ -314,6 +387,10 @@ def init_db() -> None:
         )
         """
     )
+
+    # Migra schema (compatibilidade com bancos antigos)
+    migrate_db(cur)
+
 
     # Tabela de notificações
     cur.execute(
@@ -569,6 +646,8 @@ def kv_set(key: str, value: Any) -> bool:
             (key, json.dumps(value, ensure_ascii=False)),
         )
         conn.commit()
+        # Notifica dashboards conectados via SSE que houve mudança em dados.
+        publish_data_updated()
         return True
     except Exception as e:
         logger.error(f"Erro ao definir KV {key}: {e}")
@@ -1153,6 +1232,56 @@ def auth_check():
 def auth_check_alias():
     """Compatibilidade com index.html antigo que chama /api/authCheck."""
     return auth_check()
+
+
+# =====================================================
+# REALTIME SSE (Server-Sent Events)
+# =====================================================
+@app.route("/api/events", methods=["GET"])
+@login_required_allow_query
+def sse_events():
+    """Canal SSE usado pelo dashboard.
+
+    O front-end abre um EventSource em /api/events (com ?token=...) e
+    espera ao menos:
+    - event: hello
+    - event: data_updated
+    """
+
+    # snapshot inicial
+    with _events_cond:
+        last_seq = _events_seq
+
+    def _stream():
+        nonlocal last_seq
+
+        # handshake
+        yield "event: hello\ndata: {}\n\n"
+
+        # loop
+        while True:
+            try:
+                with _events_cond:
+                    _events_cond.wait(timeout=25)
+                    cur = _events_seq
+
+                if cur != last_seq:
+                    last_seq = cur
+                    yield f"event: data_updated\ndata: {{\"seq\":{cur}}}\n\n"
+                else:
+                    # keepalive (evita proxy/timeouts)
+                    yield "event: ping\ndata: {}\n\n"
+            except GeneratorExit:
+                break
+            except Exception as e:
+                logger.warning(f"SSE stream error: {e}")
+                break
+
+    return Response(
+        _stream(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -1953,6 +2082,7 @@ def create_user():
             (name, email, generate_password_hash(password), role),
         )
         conn.commit()
+        publish_data_updated()
         return jsonify({"success": True, "message": "Usuário criado com sucesso"})
     except sqlite3.IntegrityError:
         return jsonify({"success": False, "message": "Email já cadastrado"}), 409
@@ -1994,6 +2124,7 @@ def update_user(uid: int):
             conn.execute("UPDATE users SET name=?, role=? WHERE id=?", (new_name, new_role, uid))
 
         conn.commit()
+        publish_data_updated()
         return jsonify({"success": True, "message": "Usuário atualizado"})
     except Exception as e:
         logger.error(f"Erro ao atualizar usuário: {e}")
@@ -2014,6 +2145,7 @@ def delete_user(uid: int):
             return jsonify({"success": False, "message": "Usuário não encontrado"}), 404
         conn.execute("DELETE FROM users WHERE id=?", (uid,))
         conn.commit()
+        publish_data_updated()
         return jsonify({"success": True, "message": "Usuário removido"})
     except Exception as e:
         logger.error(f"Erro ao excluir usuário: {e}")
@@ -2102,6 +2234,7 @@ def create_fornecedor():
         )
         conn.commit()
         new_id = cur.lastrowid
+        publish_data_updated()
         return jsonify({"success": True, "id": new_id})
     except sqlite3.IntegrityError:
         return jsonify({"success": False, "message": "CNPJ já cadastrado"}), 409
@@ -2152,6 +2285,7 @@ def update_fornecedor(fid: int):
             (razao, fantasia, cnpj, inscricao, email, telefone, endereco, contato, status, fid),
         )
         conn.commit()
+        publish_data_updated()
         return jsonify({"success": True})
     except sqlite3.IntegrityError:
         return jsonify({"success": False, "message": "CNPJ já cadastrado em outro fornecedor"}), 409
@@ -2176,6 +2310,7 @@ def delete_fornecedor(fid: int):
 
         cur.execute("DELETE FROM fornecedores WHERE id = ?", (fid,))
         conn.commit()
+        publish_data_updated()
         return jsonify({"success": True})
     except Exception as e:
         logger.error(f"Erro ao excluir fornecedor: {e}")
@@ -2301,26 +2436,6 @@ def analisar_pedido_detalhe(pedido_id: int):
     except Exception as e:
         logger.error(f"❌ Erro ao analisar pedido: {e}")
         return jsonify({"success": False, "message": "Erro ao analisar pedido"}), 500
-
-# =====================================================
-# AJUSTES NA FUNÇÃO get_fornecedores_licitacao
-# =====================================================
-@app.route("/api/licitacoes/<int:licitacao_id>/itens/<int:fornecedor_id>", methods=["GET"])
-@login_required
-def get_itens_licitacao_fornecedor_endpoint(licitacao_id: int, fornecedor_id: int):
-    """Endpoint específico para obter itens de uma licitação para um fornecedor específico"""
-    try:
-        itens_disponiveis = get_itens_licitacao_disponiveis(licitacao_id, fornecedor_id)
-        
-        return jsonify({
-            "success": True,
-            "itens": itens_disponiveis,
-            "licitacaoId": licitacao_id,
-            "fornecedorId": fornecedor_id
-        })
-    except Exception as e:
-        logger.error(f"Erro ao obter itens da licitação para fornecedor: {e}")
-        return jsonify({"success": False, "message": "Erro ao obter itens"}), 500
 
 # =====================================================
 # SYNC KV (PARA DADOS GLOBAIS)
