@@ -38,8 +38,7 @@ logging.basicConfig(
 logger = logging.getLogger("compra_plus")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-DATABASE = os.environ.get("COMPRA_PLUS_DB", os.path.join(BASE_DIR, "compra_plus.db"))
+DATABASE = os.path.join(BASE_DIR, "compra_plus.db")
 
 APP_SECRET = os.environ.get("COMPRA_PLUS_SECRET", "compra-plus-secret-2026-change-in-production")
 TOKEN_SALT = os.environ.get("COMPRA_PLUS_TOKEN_SALT", "compra-plus-auth-salt")
@@ -49,9 +48,9 @@ TOKEN_EXPIRES_SECONDS = int(os.environ.get("COMPRA_PLUS_TOKEN_EXPIRES", "86400")
 OPEN_MODE = False
 APP_BUILD = os.environ.get('COMPRA_PLUS_BUILD', 'revised_2026-01-25')
 SQLITE_TIMEOUT_SECONDS = float(os.environ.get("COMPRA_PLUS_DB_TIMEOUT", "12.0"))
-SSE_PING_SECONDS = int(os.environ.get("COMPRA_PLUS_SSE_PING", "15"))
+SSE_PING_SECONDS = int(os.environ.get("COMPRA_PLUS_SSE_PING", "10"))
 
-app = Flask(__name__, static_folder="static", static_url_path="/static")
+app = Flask(__name__, static_folder=".", static_url_path="")
 
 CORS(
     app,
@@ -1177,14 +1176,14 @@ def criar_notificacao_analise_pedido(pedido_id: int, pedido_numero: str, usuario
 # =====================================================
 @app.route("/")
 def serve_home():
-    return send_from_directory(STATIC_DIR, "index.html")
+    return send_from_directory(".", "index.html")
 
 @app.route("/<path:filename>")
 def serve_static(filename):
-    if os.path.exists(os.path.join(STATIC_DIR, filename)):
-        return send_from_directory(STATIC_DIR, filename)
+    if os.path.exists(os.path.join(BASE_DIR, filename)):
+        return send_from_directory(".", filename)
     if "." not in filename:
-        return send_from_directory(STATIC_DIR, "index.html")
+        return send_from_directory(".", "index.html")
     return "Arquivo não encontrado", 404
 
 # =====================================================
@@ -3154,7 +3153,7 @@ def api_events():
                 except queue.Empty:
                     if time.time() - last_ping >= SSE_PING_SECONDS:
                         last_ping = time.time()
-                        yield f"event: ping\ndata: {json.dumps({'ts': now_utc_ts()}, ensure_ascii=False)}\n\n"
+                        yield f": ping {now_utc_ts()}\n\n"
         except GeneratorExit:
             logger.info(f"Cliente SSE desconectado: {user_name}")
         except Exception as e:
@@ -3229,4 +3228,4 @@ if __name__ == "__main__":
     print("   - CORREÇÃO APLICADA: análise de pedidos mais flexível ✅")
     print("=" * 60 + "\n")
 
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=True, use_reloader=False, threaded=True)
+    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False, threaded=True)
