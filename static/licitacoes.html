@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Licitações | Compra+</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+    body{background:var(--app-bg);color:var(--app-text);min-height:100vh;overflow-x:hidden}
+    
+    :root{
+      --primary:#1e40af; --primary-light:#3b82f6; --primary-dark:#1e3a8a;
+      --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#0ea5e9;
+      --gray-50:#f8fafc; --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+      --gray-400:#94a3b8; --gray-500:#64748b; --gray-600:#475569; --gray-700:#334155; --gray-800:#1e293b;
+      --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.08); --shadow-md:0 8px 20px rgba(0,0,0,.08); --shadow-lg:0 20px 50px rgba(0,0,0,.15);
+      --transition:all .25s ease; --sidebar-w:260px;
+      --app-bg:#f8fafc; --app-card:#ffffff; --app-card-2:#f8fafc;
+      --app-text:#1e293b; --app-muted:#64748b; --app-border:#e2e8f0;
+      --app-input:#ffffff; --app-input-border:#e2e8f0;
+      --app-header:#ffffff; --app-profile:#f1f5f9; --app-profile-hover:#e2e8f0;
+      --app-table-head:#ffffff;
+    }
+    html[data-theme="dark"]{
+      --app-bg:#0b1220; --app-card:#0f172a; --app-card-2:#0b1220;
+      --app-text:#e5e7eb; --app-muted:#94a3b8; --app-border:#1f2a3a;
+      --app-input:#0b1220; --app-input-border:#1f2a3a;
+      --app-header:#0f172a; --app-profile:#111c30; --app-profile-hover:#172746;
+      --app-table-head:#0b1220;
+    }
+
+    .dashboard{display:flex;min-height:100vh}
+    .main{flex:1;min-width:0;margin-left:var(--sidebar-w);transition:var(--transition)}
+    .sidebar{
+      position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+      background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+      color:#fff;padding:18px 12px;box-shadow:5px 0 18px rgba(0,0,0,.12);
+      z-index:1200;transition:transform .28s ease;
+    }
+    .brand{
+      padding:10px 12px 18px;border-bottom:1px solid rgba(255,255,255,.12);
+      margin-bottom:12px;display:flex;align-items:center;gap:10px;
+    }
+    .brand i{font-size:1.35rem}
+    .brand h2{font-size:1.5rem;letter-spacing:.2px}
+    .brand h2 span{color:#60a5fa}
+    .nav{padding:8px 6px}
+    .nav a{
+      display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);
+      color:rgba(255,255,255,.86);text-decoration:none;transition:var(--transition);margin-bottom:6px;
+    }
+    .nav a i{width:20px;text-align:center}
+    .nav a:hover,.nav a.active{background:rgba(255,255,255,.12);color:#fff;transform:translateX(4px)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:1100}
+    .overlay.show{display:block}
+    .header{
+      position:sticky;top:0;z-index:900;background:var(--app-header);
+      box-shadow:var(--shadow-sm);min-height:72px;padding:14px 18px;
+      display:flex;align-items:center;gap:14px;justify-content:space-between;border-bottom:1px solid var(--app-border);
+    }
+    .header-left{display:flex;align-items:center;gap:12px;min-width:0}
+    .menu-btn{
+      display:none;border:none;background:var(--gray-100);color:var(--primary);
+      width:44px;height:44px;border-radius:12px;cursor:pointer;transition:var(--transition);flex:0 0 auto;
+    }
+    html[data-theme="dark"] .menu-btn{background:#111c30;color:#93c5fd}
+    html[data-theme="dark"] .menu-btn:hover{background:#172746}
+    .menu-btn:hover{background:var(--gray-200)}
+    .title-wrap h2{font-size:1.25rem;color:var(--primary);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .title-wrap p{font-size:.9rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .profile{
+      display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--app-profile);
+      border-radius:999px;cursor:pointer;transition:var(--transition);
+      min-width:180px;max-width:340px;border:1px solid var(--app-border);
+    }
+    .profile:hover{background:var(--app-profile-hover)}
+    .avatar{
+      width:38px;height:38px;border-radius:999px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-light));
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex:0 0 auto;
+    }
+    .pinfo h4{font-size:.92rem;color:var(--app-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+    .pinfo p{font-size:.8rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:11px 16px;border:none;border-radius:var(--radius-lg);cursor:pointer;font-weight:800;
+      transition:var(--transition);text-decoration:none;white-space:nowrap;
+    }
+    .btn:active{transform:scale(.99)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;box-shadow:0 8px 18px rgba(59,130,246,.18)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(59,130,246,.25)}
+    .btn-secondary{background:var(--gray-100);color:var(--gray-700);border:2px solid var(--gray-200)}
+    html[data-theme="dark"] .btn-secondary{background:#111c30;color:#e5e7eb;border-color:var(--app-border)}
+    html[data-theme="dark"] .btn-secondary:hover{background:#172746}
+    .btn-success{background:linear-gradient(135deg,var(--success),#34d399);color:#fff}
+    .btn-warning{background:linear-gradient(135deg,var(--warning),#fbbf24);color:#fff}
+    .btn-danger{background:linear-gradient(135deg,var(--danger),#f87171);color:#fff}
+    .btn-info{background:linear-gradient(135deg,var(--info),#22d3ee);color:#fff}
+    .btn-sm{padding:8px 12px;border-radius:14px;font-size:.9rem}
+    .logout{
+      border:none;background:var(--danger);color:#fff;padding:10px 14px;border-radius:999px;cursor:pointer;
+      font-weight:800;display:flex;align-items:center;gap:8px;transition:var(--transition);white-space:nowrap;
+    }
+    .logout:hover{background:#dc2626;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+    .content{padding:20px}
+    .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:14px 0 18px;flex-wrap:wrap}
+    .page-head h1{font-size:1.7rem;color:var(--primary);line-height:1.1}
+    .page-head p{color:var(--app-muted);margin-top:8px}
+    .actions-top{display:flex;gap:10px;flex-wrap:wrap}
+    .card{
+      background:var(--app-card);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-md);
+      overflow:hidden;
+      border:1px solid var(--app-border);
+    }
+    .card-head{
+      padding:16px;border-bottom:1px solid var(--app-border);
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--app-card);
+    }
+    .card-head h3{display:flex;align-items:center;gap:10px;color:var(--app-text);font-size:1.15rem}
+    .filters{
+      padding:16px;
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:12px;
+    }
+    .fg{display:flex;flex-direction:column;gap:8px}
+    .fg label{font-weight:900;color:var(--gray-600);font-size:.92rem}
+    html[data-theme="dark"] .fg label{color:var(--app-muted)}
+    .input,.select,textarea.input{
+      width:100%;padding:12px 12px;border:2px solid var(--app-input-border);
+      border-radius:14px;outline:none;transition:var(--transition);
+      background:var(--app-input);color:var(--app-text);
+    }
+    .input:focus,.select:focus,textarea.input:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+    .filter-actions{padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .twrap{
+      margin:16px;border:1px solid var(--app-border);border-radius:16px;overflow:auto;background:var(--app-card);
+      max-height:520px;
+    }
+    table{width:100%;border-collapse:collapse;min-width:1100px}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--app-border);text-align:left;vertical-align:middle}
+    th{color:var(--app-muted);font-size:.9rem;font-weight:900;background:var(--app-table-head);position:sticky;top:0}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;font-weight:900;font-size:.85rem;
+      border:1px solid var(--app-border);background:var(--app-card-2);white-space:nowrap;
+    }
+    .st-ok{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+    .st-warn{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .st-bad{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    html[data-theme="dark"] .st-ok{background:rgba(16,185,129,.14);color:#a7f3d0;border-color:rgba(16,185,129,.22)}
+    html[data-theme="dark"] .st-warn{background:rgba(245,158,11,.14);color:#fde68a;border-color:rgba(245,158,11,.22)}
+    html[data-theme="dark"] .st-bad{background:rgba(239,68,68,.14);color:#fecaca;border-color:rgba(239,68,68,.22)}
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .toast{
+      position:fixed;top:18px;right:18px;z-index:3000;
+      background:var(--app-card);border-radius:16px;box-shadow:var(--shadow-lg);
+      border-left:5px solid var(--primary);padding:12px 14px;
+      display:flex;gap:10px;align-items:center;
+      max-width:min(420px, calc(100vw - 36px));
+      transform:translateX(140%);transition:transform .25s ease;color:var(--app-text);
+    }
+    .toast.show{transform:translateX(0)}
+    .toast i{color:var(--primary)}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:2000;padding:18px}
+    .modal-overlay.show{display:flex}
+    .modal{
+      width:min(980px, 100%);
+      background:var(--app-card);border:1px solid var(--app-border);
+      border-radius:20px;box-shadow:var(--shadow-lg);overflow:hidden;
+      max-height: calc(100vh - 36px);
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-head{padding:16px;border-bottom:1px solid var(--app-border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .modal-head h3{display:flex;align-items:center;gap:10px;color:var(--primary);font-size:1.1rem}
+    .close{border:none;background:transparent;color:var(--app-muted);width:42px;height:42px;border-radius:12px;cursor:pointer;transition:var(--transition)}
+    .close:hover{background:var(--app-card-2);color:var(--danger)}
+    .modal-body{padding:16px;overflow:auto;max-height: calc(100vh - 210px);}
+    .modal-actions{padding:0 16px 16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+    .hr{height:1px;background:var(--app-border);margin:14px 0}
+    .items-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr 0.8fr 0.8fr 0.8fr auto;
+      gap:10px;
+      align-items:end;
+    }
+    .mini-note{
+      color:var(--app-muted);
+      font-weight:800;
+      font-size:.92rem;
+      line-height:1.35;
+    }
+    .section-title{
+      font-size:1.1rem;
+      color:var(--primary);
+      font-weight:900;
+      margin:24px 0 12px;
+      padding-bottom:8px;
+      border-bottom:2px solid var(--app-border);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    @media (max-width: 992px){
+      .menu-btn{display:inline-flex;align-items:center;justify-content:center}
+      .main{margin-left:0}
+      .sidebar{transform:translateX(-105%)}
+      .sidebar.show{transform:translateX(0)}
+      .filters{grid-template-columns:repeat(2, minmax(0,1fr))}
+      table{min-width:980px}
+      .items-grid{grid-template-columns:1fr 1fr; align-items:stretch}
+      .items-grid .fg{grid-column:auto}
+    }
+    @media (max-width: 640px){
+      .header{flex-wrap:wrap;align-items:flex-start}
+      .header-right{width:100%;justify-content:space-between}
+      .profile{flex:1;min-width:0}
+      .btn{width:100%}
+      .filter-actions{justify-content:stretch}
+      .filters{grid-template-columns:1fr}
+      table{min-width:880px}
+      .modal-body{ max-height: calc(100vh - 260px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <!-- Modal Licitação -->
+  <div class="modal-overlay" id="modalLic" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-head">
+        <h3><i class="fas fa-gavel"></i> <span id="modalLicTitle">Criar licitação</span></h3>
+        <button class="close" id="closeModalLic" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="filters" style="padding:0;grid-template-columns:repeat(3,minmax(0,1fr))">
+          <div class="fg" style="grid-column:span 2">
+            <label for="mLNumero">Número da licitação</label>
+            <input class="input" id="mLNumero" placeholder="Ex: LIC-2023-001" />
+          </div>
+          <div class="fg">
+            <label for="mLStatus">Status</label>
+            <select class="select" id="mLStatus">
+              <option value="aberta">Aberta</option>
+              <option value="em_analise">Em análise</option>
+              <option value="finalizada">Finalizada</option>
+            </select>
+          </div>
+
+          <div class="fg" style="grid-column:span 3">
+            <label for="mLDescricao">Descrição / Objeto</label>
+            <input class="input" id="mLDescricao" placeholder="Descreva o objeto desta licitação..." />
+          </div>
+
+          <div class="fg">
+            <label for="mLDataInicio">Data início</label>
+            <input class="input" type="date" id="mLDataInicio" />
+          </div>
+          <div class="fg">
+            <label for="mLDataFim">Data fim</label>
+            <input class="input" type="date" id="mLDataFim" />
+          </div>
+          <div class="fg">
+            <label for="mLValorEstimado">Valor estimado (R$)</label>
+            <input class="input" id="mLValorEstimado" type="number" min="0" step="0.01" value="0" />
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="section-title">
+          <i class="fas fa-file-contract"></i> Documentos e observações
+        </div>
+
+        <div class="filters" style="padding:0;grid-template-columns:1fr">
+          <div class="fg">
+            <label for="mLObservacoes">Observações</label>
+            <textarea class="input" id="mLObservacoes" placeholder="Observações importantes sobre esta licitação..." style="min-height:80px;resize:vertical"></textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+        <div class="mini-note" id="saveLicNote">Pronto para salvar.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="cancelLicBtn">Cancelar</button>
+          <button class="btn btn-primary" id="saveLicBtn"><i class="fas fa-save"></i> Salvar licitação</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Itens da Licitação -->
+  <div class="modal-overlay" id="modalItens" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-head">
+        <h3><i class="fas fa-boxes-stacked"></i> <span id="modalItensTitle">Itens por fornecedor</span></h3>
+        <button class="close" id="closeModalItens" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="filters" style="padding:0;grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="fg">
+            <label for="iLicSelect">Selecionar licitação</label>
+            <select class="select" id="iLicSelect">
+              <option value="">-- Selecione uma licitação --</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="iFornSelect">Selecionar fornecedor</label>
+            <select class="select" id="iFornSelect">
+              <option value="">-- Selecione um fornecedor --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="section-title">
+          <i class="fas fa-plus-circle"></i> Adicionar / editar item (rascunho)
+        </div>
+
+        <div class="items-grid">
+          <div class="fg">
+            <label for="iItemNome">Item</label>
+            <input class="input" id="iItemNome" placeholder="Ex: Papel A4" />
+          </div>
+          <div class="fg">
+            <label for="iItemDescricao">Apresentação / descrição</label>
+            <input class="input" id="iItemDescricao" placeholder="Ex: 75g/m² 500 folhas" />
+          </div>
+          <div class="fg">
+            <label for="iItemPreco">Preço unitário</label>
+            <input class="input" id="iItemPreco" type="number" min="0" step="0.01" value="0" />
+          </div>
+          <div class="fg">
+            <label for="iItemUnidade">Unidade</label>
+            <input class="input" id="iItemUnidade" placeholder="Ex: CX" value="UN" />
+          </div>
+          <div class="fg">
+            <label for="iItemQuantidade">Quantidade disponível</label>
+            <input class="input" id="iItemQuantidade" type="number" min="1" step="1" value="1" />
+          </div>
+          <div class="fg">
+            <label for="iItemQtdMin">Qtd mínima por pedido</label>
+            <input class="input" id="iItemQtdMin" type="number" min="1" step="1" value="1" />
+          </div>
+          <div class="fg">
+            <button class="btn btn-success" id="addItemLicBtn" style="margin-top:22px">
+              <i class="fas fa-plus"></i> Adicionar (rascunho)
+            </button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="section-title">
+          <i class="fas fa-list"></i> Itens cadastrados
+          <span class="pill st-warn" id="itensDirtyPill" style="margin-left:auto;display:none">
+            <i class="fas fa-pen"></i> Alterações pendentes
+          </span>
+        </div>
+
+        <div class="twrap" style="max-height:300px; margin:0">
+          <table>
+            <thead>
+              <tr>
+                <th>Licitação</th>
+                <th>Fornecedor</th>
+                <th>Item</th>
+                <th>Apresentação</th>
+                <th>Preço</th>
+                <th>Unidade</th>
+                <th>Qtd disp.</th>
+                <th>Qtd mín.</th>
+                <th>Subtotal</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="itensLicBody"></tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:16px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap">
+          <div class="pill st-warn" id="totalItensPill">
+            <i class="fas fa-calculator"></i> Total: 0 itens
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <button class="btn btn-secondary" id="limparItensBtn">
+              <i class="fas fa-broom"></i> Limpar seleção
+            </button>
+            <button class="btn btn-primary" id="saveItensBtn">
+              <i class="fas fa-save"></i> Salvar itens
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+        <div class="mini-note" id="saveItensNote">Adicione/exclua itens e clique em "Salvar itens".</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="cancelItensBtn">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard">
+    <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+      <div class="brand">
+        <i class="fas fa-shopping-cart"></i>
+        <h2>Compra<span>+</span></h2>
+      </div>
+      <nav class="nav"></nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="title-wrap">
+            <h2>Licitações</h2>
+            <p>Gestão de licitações e itens por fornecedor</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="profile" id="userProfile" title="Perfil do usuário">
+            <div class="avatar" id="userAvatar">U</div>
+            <div class="pinfo">
+              <h4 id="userName">Carregando...</h4>
+              <p id="userRole">—</p>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary" id="themeToggleBtn" title="Alternar tema">
+            <i class="fas fa-moon" id="themeIcon"></i>
+            <span id="themeText">Escuro</span>
+          </button>
+
+          <button class="logout" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="page-head">
+          <div>
+            <h1>Gestão de Licitações</h1>
+            <p id="rtInfo">Carregando do servidor...</p>
+          </div>
+
+          <div class="actions-top">
+            <button class="btn btn-secondary" id="refreshBtn"><i class="fas fa-rotate"></i> Atualizar</button>
+            <button class="btn btn-primary" id="newLicBtn"><i class="fas fa-plus-circle"></i> Nova licitação</button>
+            <button class="btn btn-info" id="gerenciarItensBtn"><i class="fas fa-boxes-stacked"></i> Itens por fornecedor</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3><i class="fas fa-filter"></i> Filtros</h3>
+          </div>
+
+          <div class="filters">
+            <div class="fg">
+              <label for="fStatus">Status</label>
+              <select class="select" id="fStatus">
+                <option value="all">Todos</option>
+                <option value="aberta">Aberta</option>
+                <option value="em_analise">Em análise</option>
+                <option value="finalizada">Finalizada</option>
+              </select>
+            </div>
+
+            <div class="fg">
+              <label for="fQuery">Buscar</label>
+              <input class="input" id="fQuery" placeholder="Nº licitação, descrição..." />
+            </div>
+
+            <div class="fg">
+              <label for="fFrom">Data início (de)</label>
+              <input class="input" id="fFrom" type="date" />
+            </div>
+
+            <div class="fg">
+              <label for="fTo">Data início (até)</label>
+              <input class="input" id="fTo" type="date" />
+            </div>
+          </div>
+
+          <div class="filter-actions">
+            <button class="btn btn-secondary" id="clearBtn"><i class="fas fa-rotate-left"></i> Limpar</button>
+            <button class="btn btn-primary" id="applyBtn"><i class="fas fa-magnifying-glass"></i> Aplicar</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="card-head">
+            <h3><i class="fas fa-list"></i> Lista de licitações</h3>
+            <div class="row-actions">
+              <span class="pill st-ok" id="onlinePill"><i class="fas fa-signal"></i> Online</span>
+            </div>
+          </div>
+
+          <div class="twrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Descrição</th>
+                  <th>Período</th>
+                  <th>Valor estimado</th>
+                  <th>Status</th>
+                  <th>Itens</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // =========================
+    // CONFIGURAÇÃO
+    // =========================
+    // =========================
+    // BASE URL (suporta abrir em file:// e também via servidor)
+    // =========================
+    const DEFAULT_BACKEND = "http://127.0.0.1:5000";
+    const isFile = window.location.protocol === "file:";
+    const BASE_URL = isFile ? DEFAULT_BACKEND : window.location.origin;
+
+    function apiUrl(path){
+      if (!path) return BASE_URL;
+      if (/^https?:\/\//i.test(path)) return path;
+      return (path.startsWith('/') ? (BASE_URL + path) : (BASE_URL + '/' + path));
+    }
+
+    function pageUrl(file){
+      return isFile ? file : ('/' + file);
+    }
+
+    // =========================
+    // CONFIGURAÇÃO
+    // =========================
+    const API = {
+      authCheck: '/api/auth/check',
+      fornecedores: '/api/fornecedores',
+      pull: '/api/sync/pull',
+      push: '/api/sync/push'
+    };
+
+    const KEYS = {
+      licitacoes: 'compraPlusLicitacoes_v1',
+      licitacoesItens: 'compraPlusItensLicitacao_v1'
+    };
+
+    // =========================
+    // ESTADO GLOBAL
+    // =========================
+    let DB = {
+      licitacoes: [],
+      licitacoesItens: [],
+      fornecedores: []
+    };
+
+    let CURRENT_USER = {
+      id: null,
+      name: 'Usuário',
+      role: 'Consulta',
+      allowed_pages: ['dashboard']
+    };
+
+    let editingLic = null;
+    let editingItem = null;
+    let itensDirty = false;
+
+    // =========================
+    // FUNÇÕES UTILITÁRIAS
+    // =========================
+    function getToken() {
+      return localStorage.getItem('compraPlus_token_v1') || 
+             localStorage.getItem('access_token') || '';
+    }
+
+    async function apiCall(url, options = {}) {
+      const token = getToken();
+      const headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      };
+      
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      
+      try {
+        const response = await fetch(apiUrl(url), { ...options, headers });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+      }
+    }
+
+    async function apiGet(url) {
+      return apiCall(url, { method: 'GET' });
+    }
+
+    async function apiPost(url, data) {
+      return apiCall(url, { 
+        method: 'POST', 
+        body: JSON.stringify(data) 
+      });
+    }
+
+    function toast(msg, type = 'info') {
+      const el = document.createElement('div');
+      el.className = 'toast';
+      let icon = 'fa-info-circle';
+      let color = 'var(--primary)';
+      
+      if (type === 'success') { 
+        icon = 'fa-check-circle'; 
+        color = 'var(--success)'; 
+      } else if (type === 'error') { 
+        icon = 'fa-exclamation-circle'; 
+        color = 'var(--danger)'; 
+      } else if (type === 'warning') { 
+        icon = 'fa-exclamation-triangle'; 
+        color = 'var(--warning)'; 
+      }
+      
+      el.innerHTML = `<i class="fas ${icon}"></i><div style="font-weight:800">${msg}</div>`;
+      el.style.borderLeftColor = color;
+      el.querySelector('i').style.color = color;
+      document.body.appendChild(el);
+      
+      requestAnimationFrame(() => el.classList.add('show'));
+      setTimeout(() => { 
+        el.classList.remove('show'); 
+        setTimeout(() => el.remove(), 220); 
+      }, 3000);
+    }
+
+    function money(v) {
+      const n = Number(v || 0);
+      return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      if (Number.isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('pt-BR');
+    }
+
+    function pillStatus(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'aberta') return `<span class="pill st-ok"><i class="fas fa-unlock"></i> Aberta</span>`;
+      if (s === 'em_analise') return `<span class="pill st-warn"><i class="fas fa-clock"></i> Em análise</span>`;
+      if (s === 'finalizada') return `<span class="pill st-bad"><i class="fas fa-lock"></i> Finalizada</span>`;
+      return `<span class="pill st-warn"><i class="fas fa-circle"></i> ${status || '—'}</span>`;
+    }
+
+    // =========================
+    // TEMA E LAYOUT
+    // =========================
+    const html = document.documentElement;
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+
+    function applyTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      if (theme === 'dark') {
+        themeIcon.className = 'fas fa-sun';
+        themeText.textContent = 'Claro';
+      } else {
+        themeIcon.className = 'fas fa-moon';
+        themeText.textContent = 'Escuro';
+      }
+    }
+
+    function initTheme() {
+      applyTheme(localStorage.getItem('theme') || 'light');
+    }
+
+    // =========================
+    // MENU LATERAL
+    // =========================
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function openSidebar() { 
+      sidebar.classList.add('show'); 
+      overlay.classList.add('show'); 
+      menuBtn.setAttribute('aria-expanded', 'true'); 
+    }
+
+    function closeSidebar() { 
+      sidebar.classList.remove('show'); 
+      overlay.classList.remove('show'); 
+      menuBtn.setAttribute('aria-expanded', 'false'); 
+    }
+
+    function generateMenu(allowedPages) {
+      const nav = document.querySelector('.nav');
+      if (!nav) return;
+
+      nav.innerHTML = '';
+
+      const menuItems = {
+        dashboard: { icon: 'fa-tachometer-alt', label: 'Dashboard', href: pageUrl('dashboard.html') },
+        pedidos: { icon: 'fa-clipboard-list', label: 'Pedidos', href: pageUrl('pedidos.html') },
+        licitacoes: { icon: 'fa-gavel', label: 'Licitações', href: pageUrl('licitacoes.html') },
+        fornecedores: { icon: 'fa-truck', label: 'Fornecedores', href: pageUrl('fornecedores.html') },
+        relatorios: { icon: 'fa-chart-bar', label: 'Relatórios', href: pageUrl('relatorios.html') },
+        configuracoes: { icon: 'fa-cog', label: 'Configurações', href: pageUrl('configuracoes.html') },
+        usuarios: { icon: 'fa-users', label: 'Usuários', href: pageUrl('usuarios.html') }
+      };
+
+      const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+
+      const addLink = (item) => {
+        const link = document.createElement('a');
+        link.href = item.href;
+        link.innerHTML = `<i class="fas ${item.icon}"></i><span>${item.label}</span>`;
+        if (item.href.includes(currentPage)) link.classList.add('active');
+        nav.appendChild(link);
+      };
+
+      addLink(menuItems.dashboard);
+
+      (allowedPages || []).forEach(page => {
+        if (page === 'dashboard') return;
+        if (menuItems[page]) addLink(menuItems[page]);
+      });
+    }
+
+    // =========================
+    // AUTENTICAÇÃO E PERMISSÕES
+    // =========================
+    async function loadUser() {
+      const nameEl = document.getElementById('userName');
+      const roleEl = document.getElementById('userRole');
+      const avEl = document.getElementById('userAvatar');
+
+      try {
+        const data = await apiGet(API.authCheck);
+        
+        if (data?.authenticated && data.user) {
+          CURRENT_USER = {
+            id: data.user.id,
+            name: data.user.name || 'Usuário',
+            role: data.user.role || 'Consulta',
+            allowed_pages: data.user.allowed_pages || ['dashboard']
+          };
+        } else {
+          CURRENT_USER = { 
+            id: null, 
+            name: 'Não autenticado', 
+            role: 'Consulta', 
+            allowed_pages: ['dashboard'] 
+          };
+        }
+      } catch (e) {
+        CURRENT_USER = { 
+          id: null, 
+          name: 'Erro de conexão', 
+          role: 'Sessão expirada', 
+          allowed_pages: ['dashboard'] 
+        };
+      }
+
+      nameEl.textContent = CURRENT_USER.name;
+      roleEl.textContent = 'Perfil: ' + CURRENT_USER.role;
+      avEl.textContent = String((CURRENT_USER.name || 'U').trim().charAt(0)).toUpperCase();
+
+      generateMenu(CURRENT_USER.allowed_pages);
+      applyPermissions();
+    }
+
+    function canManage() {
+      return ['Administrador', 'Gerente'].includes(CURRENT_USER.role);
+    }
+
+    function applyPermissions() {
+      const can = canManage();
+      const btnNew = document.getElementById('newLicBtn');
+      const btnItens = document.getElementById('gerenciarItensBtn');
+      
+      btnNew.style.display = can ? 'inline-flex' : 'none';
+      btnItens.style.display = can ? 'inline-flex' : 'none';
+
+      const saveLicBtn = document.getElementById('saveLicBtn');
+      const addItemBtn = document.getElementById('addItemLicBtn');
+      const saveItensBtn = document.getElementById('saveItensBtn');
+
+      [saveLicBtn, addItemBtn, saveItensBtn].forEach(btn => {
+        if (!btn) return;
+        btn.disabled = !can;
+        btn.style.opacity = can ? '1' : '.55';
+        btn.style.cursor = can ? 'pointer' : 'not-allowed';
+      });
+
+      const saveLicNote = document.getElementById('saveLicNote');
+      if (saveLicNote && !can) {
+        saveLicNote.textContent = 'Somente gerente/adm podem salvar ou editar.';
+      }
+
+      const saveItensNote = document.getElementById('saveItensNote');
+      if (saveItensNote && !can) {
+        saveItensNote.textContent = 'Somente gerente/adm podem salvar/alterar itens.';
+      }
+    }
+
+    // =========================
+    // CARREGAMENTO DE DADOS
+    // =========================
+    async function loadFornecedores() {
+      try {
+        const data = await apiGet(API.fornecedores);
+        if (data?.success && Array.isArray(data.fornecedores)) {
+          DB.fornecedores = data.fornecedores.map(f => ({
+            id: f.id,
+            razao_social: f.razao_social || f.nome || '',
+            nome_fantasia: f.nome_fantasia || f.fantasia || '',
+            cnpj: f.cnpj_formatado || f.cnpj || '',
+            email: f.email || ''
+          }));
+        } else {
+          DB.fornecedores = [];
+        }
+      } catch (e) {
+        console.error('Erro ao carregar fornecedores:', e);
+        DB.fornecedores = [];
+      }
+    }
+
+    async function loadLicitacoes() {
+      try {
+        const data = await apiGet(API.pull);
+        const d = data?.data || {};
+        
+        // Licitações
+        DB.licitacoes = Array.isArray(d[KEYS.licitacoes]) 
+          ? d[KEYS.licitacoes].map(l => ({
+              id: Number(l.id ?? 0),
+              numero: String(l.numero || ''),
+              descricao: String(l.descricao || ''),
+              status: String(l.status || 'aberta'),
+              inicio: String(l.inicio || ''),
+              fim: String(l.fim || ''),
+              valor_estimado: Number(l.valor_estimado ?? 0),
+              observacoes: String(l.observacoes || ''),
+              data_criacao: String(l.data_criacao || new Date().toISOString().split('T')[0])
+            }))
+          : [];
+
+        // Itens das licitações
+        DB.licitacoesItens = Array.isArray(d[KEYS.licitacoesItens])
+          ? d[KEYS.licitacoesItens].map(it => ({
+              id: Number(it.id ?? 0),
+              licitacaoId: Number(it.licitacaoId ?? it.licitacao_id ?? 0),
+              fornecedorId: Number(it.fornecedorId ?? it.fornecedor_id ?? 0),
+              nome: String(it.nome || ''),
+              descricao: String(it.descricao || it.apresentacao || ''),
+              preco: Number(it.preco ?? 0),
+              quantidade: Number(it.quantidade ?? it.quantidade_disponivel ?? 1),
+              quantidade_minima: Number(it.quantidade_minima ?? 1),
+              unidade: String(it.unidade || 'UN'),
+              data_cadastro: String(it.data_cadastro || new Date().toISOString().split('T')[0])
+            }))
+          : [];
+
+        document.getElementById('rtInfo').textContent = 
+          `${DB.licitacoes.length} licitações | ${DB.licitacoesItens.length} itens`;
+        setOnline(true);
+        return true;
+      } catch (e) {
+        console.error('Erro ao carregar licitações:', e);
+        document.getElementById('rtInfo').textContent = 'Erro ao carregar dados';
+        setOnline(false);
+        return false;
+      }
+    }
+
+    async function loadAllData() {
+      try {
+        await Promise.all([loadFornecedores(), loadLicitacoes()]);
+        renderTable();
+        return true;
+      } catch (e) {
+        console.error('Erro ao carregar dados:', e);
+        return false;
+      }
+    }
+
+    function setOnline(ok) {
+      const pill = document.getElementById('onlinePill');
+      pill.className = 'pill ' + (ok ? 'st-ok' : 'st-bad');
+      pill.innerHTML = ok
+        ? '<i class="fas fa-signal"></i> Online'
+        : '<i class="fas fa-triangle-exclamation"></i> Offline';
+    }
+
+    // =========================
+    // RENDERIZAÇÃO DA TABELA
+    // =========================
+    function getFilteredLicitacoes() {
+      const st = document.getElementById('fStatus').value;
+      const q = (document.getElementById('fQuery').value || '').trim().toLowerCase();
+      const from = document.getElementById('fFrom').value || '';
+      const to = document.getElementById('fTo').value || '';
+
+      return DB.licitacoes.filter(l => {
+        if (st !== 'all' && String(l.status || '').toLowerCase() !== st) return false;
+        if (from && String(l.inicio || '') < from) return false;
+        if (to && String(l.inicio || '') > to) return false;
+
+        if (q) {
+          const searchStr = [l.numero || '', l.descricao || '', l.status || ''].join(' ').toLowerCase();
+          if (!searchStr.includes(q)) return false;
+        }
+        return true;
+      }).sort((a, b) => (b.id || 0) - (a.id || 0));
+    }
+
+    function contarItensLic(licId) {
+      return DB.licitacoesItens.filter(item => Number(item.licitacaoId) === Number(licId)).length;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      const data = getFilteredLicitacoes();
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="padding:18px;color:var(--app-muted)">
+          <i class="fas fa-inbox"></i> Nenhuma licitação encontrada.
+        </td></tr>`;
+        return;
+      }
+
+      data.forEach(l => {
+        const tr = document.createElement('tr');
+        const numItens = contarItensLic(l.id);
+
+        const actionsManage = canManage() ? `
+          <button class="btn btn-warning btn-sm" data-action="edit" data-id="${l.id}" title="Editar">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-danger btn-sm" data-action="del" data-id="${l.id}" title="Excluir">
+            <i class="fas fa-trash"></i>
+          </button>
+        ` : '';
+
+        tr.innerHTML = `
+          <td style="font-weight:900">${l.numero || ('LIC-' + l.id)}</td>
+          <td>
+            <div style="font-weight:900">${l.descricao || '—'}</div>
+            <div style="font-size:0.85rem; color:var(--app-muted); margin-top:4px">
+              ${l.observacoes ? l.observacoes.substring(0, 60) + (l.observacoes.length > 60 ? '...' : '') : ''}
+            </div>
+          </td>
+          <td>
+            <div>${formatDate(l.inicio)}</div>
+            <div style="font-size:0.85rem; color:var(--app-muted)">até ${formatDate(l.fim)}</div>
+          </td>
+          <td style="font-weight:900">${money(l.valor_estimado)}</td>
+          <td>${pillStatus(l.status)}</td>
+          <td>
+            <span class="pill ${numItens > 0 ? 'st-ok' : 'st-warn'}">
+              <i class="fas fa-box"></i> ${numItens} item(ns)
+            </span>
+          </td>
+          <td>
+            <div class="row-actions">
+              ${actionsManage}
+              <button class="btn btn-info btn-sm" data-action="itens" data-id="${l.id}" title="Ver itens">
+                <i class="fas fa-boxes"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // =========================
+    // MODAL LICITAÇÃO
+    // =========================
+    const modalLic = document.getElementById('modalLic');
+
+    function openModalLic(licitacao = null) {
+      if (!canManage()) {
+        toast('Somente gerente/adm podem criar/editar licitações', 'warning');
+        return;
+      }
+
+      editingLic = licitacao;
+
+      if (licitacao) {
+        document.getElementById('modalLicTitle').textContent = 'Editar licitação';
+        document.getElementById('mLNumero').value = licitacao.numero || '';
+        document.getElementById('mLDescricao').value = licitacao.descricao || '';
+        document.getElementById('mLStatus').value = licitacao.status || 'aberta';
+        document.getElementById('mLDataInicio').value = licitacao.inicio || '';
+        document.getElementById('mLDataFim').value = licitacao.fim || '';
+        document.getElementById('mLValorEstimado').value = licitacao.valor_estimado || 0;
+        document.getElementById('mLObservacoes').value = licitacao.observacoes || '';
+      } else {
+        document.getElementById('modalLicTitle').textContent = 'Criar licitação';
+        document.getElementById('mLNumero').value = '';
+        document.getElementById('mLDescricao').value = '';
+        document.getElementById('mLStatus').value = 'aberta';
+        document.getElementById('mLDataInicio').value = new Date().toISOString().split('T')[0];
+        document.getElementById('mLDataFim').value = '';
+        document.getElementById('mLValorEstimado').value = 0;
+        document.getElementById('mLObservacoes').value = '';
+      }
+
+      modalLic.classList.add('show');
+    }
+
+    function closeModalLic() {
+      modalLic.classList.remove('show');
+      editingLic = null;
+    }
+
+    async function salvarLicitacao() {
+      if (!canManage()) {
+        toast('Somente gerente/adm podem salvar', 'warning');
+        return;
+      }
+
+      const numero = (document.getElementById('mLNumero').value || '').trim();
+      const descricao = (document.getElementById('mLDescricao').value || '').trim();
+      const status = document.getElementById('mLStatus').value || 'aberta';
+      const inicio = document.getElementById('mLDataInicio').value || '';
+      const fim = document.getElementById('mLDataFim').value || '';
+      const valor_estimado = Number(document.getElementById('mLValorEstimado').value || 0);
+      const observacoes = (document.getElementById('mLObservacoes').value || '').trim();
+
+      if (!numero || !descricao) {
+        toast('Número e descrição são obrigatórios', 'warning');
+        return;
+      }
+      if (inicio && fim && inicio > fim) {
+        toast('Data de início não pode ser posterior à data de fim', 'warning');
+        return;
+      }
+
+      try {
+        document.getElementById('saveLicNote').textContent = 'Salvando...';
+        
+        const nextLicitacoes = [...DB.licitacoes];
+        
+        if (editingLic) {
+          const idx = nextLicitacoes.findIndex(x => Number(x.id) === Number(editingLic.id));
+          if (idx === -1) {
+            toast('Licitação não encontrada', 'error');
+            return;
+          }
+          
+          nextLicitacoes[idx] = { 
+            ...nextLicitacoes[idx], 
+            numero, 
+            descricao, 
+            status, 
+            inicio, 
+            fim, 
+            valor_estimado, 
+            observacoes 
+          };
+        } else {
+          const nextId = nextLicitacoes.reduce((max, l) => Math.max(max, Number(l.id || 0)), 0) + 1;
+          nextLicitacoes.push({
+            id: nextId,
+            numero,
+            descricao,
+            status,
+            inicio,
+            fim,
+            valor_estimado,
+            observacoes,
+            data_criacao: new Date().toISOString().split('T')[0]
+          });
+        }
+
+        await apiPost(API.push, { key: KEYS.licitacoes, value: nextLicitacoes });
+        
+        document.getElementById('saveLicNote').textContent = 'Salvo!';
+        toast('Licitação salva com sucesso', 'success');
+        closeModalLic();
+        
+        await loadAllData();
+      } catch (e) {
+        document.getElementById('saveLicNote').textContent = 'Falha ao salvar';
+        toast('Erro ao salvar: ' + (e?.message || 'Erro desconhecido'), 'error');
+      }
+    }
+
+    async function excluirLicitacao(id) {
+      if (!canManage()) {
+        toast('Somente gerente/adm podem excluir licitações', 'warning');
+        return;
+      }
+      
+      if (!confirm('Excluir esta licitação? Todos os itens vinculados também serão removidos.')) return;
+
+      try {
+        const novasLicitacoes = DB.licitacoes.filter(l => Number(l.id) !== Number(id));
+        const novosItens = DB.licitacoesItens.filter(it => Number(it.licitacaoId) !== Number(id));
+
+        await apiPost(API.push, { key: KEYS.licitacoes, value: novasLicitacoes });
+        await apiPost(API.push, { key: KEYS.licitacoesItens, value: novosItens });
+
+        DB.licitacoes = novasLicitacoes;
+        DB.licitacoesItens = novosItens;
+
+        toast('Licitação e itens removidos com sucesso', 'success');
+        renderTable();
+      } catch (e) {
+        toast('Erro ao excluir: ' + (e?.message || 'erro'), 'error');
+      }
+    }
+
+    // =========================
+    // MODAL ITENS - CORRIGIDO
+    // =========================
+    const modalItens = document.getElementById('modalItens');
+
+    function openModalItens() {
+      preencherSelectsModalItens();
+      renderModalItens();
+      updateTotalItensPill();
+      modalItens.classList.add('show');
+    }
+
+    function closeModalItens() {
+      modalItens.classList.remove('show');
+      editingItem = null;
+      resetItemForm();
+    }
+
+    function preencherSelectsModalItens() {
+      const licSelect = document.getElementById('iLicSelect');
+      const fornSelect = document.getElementById('iFornSelect');
+      
+      licSelect.innerHTML = '<option value="">-- Selecione uma licitação --</option>';
+      fornSelect.innerHTML = '<option value="">-- Selecione um fornecedor --</option>';
+      
+      // Preenche licitações
+      DB.licitacoes.forEach(l => {
+        const option = document.createElement('option');
+        option.value = l.id;
+        option.textContent = `${l.numero || 'LIC-' + l.id} - ${l.descricao?.substring(0, 50) || ''}`;
+        licSelect.appendChild(option);
+      });
+      
+      // Preenche fornecedores
+      DB.fornecedores.forEach(f => {
+        const option = document.createElement('option');
+        option.value = f.id;
+        const nome = f.razao_social || f.nome_fantasia || `Fornecedor ${f.id}`;
+        option.textContent = `${nome} ${f.cnpj ? '(' + f.cnpj + ')' : ''}`;
+        fornSelect.appendChild(option);
+      });
+    }
+
+    function resetItemForm() {
+      document.getElementById('iItemNome').value = '';
+      document.getElementById('iItemDescricao').value = '';
+      document.getElementById('iItemPreco').value = '0';
+      document.getElementById('iItemUnidade').value = 'UN';
+      document.getElementById('iItemQuantidade').value = '1';
+      document.getElementById('iItemQtdMin').value = '1';
+      
+      const btn = document.getElementById('addItemLicBtn');
+      btn.innerHTML = '<i class="fas fa-plus"></i> Adicionar (rascunho)';
+      btn.onclick = adicionarItem;
+      editingItem = null;
+    }
+
+    function renderModalItens() {
+      const tbody = document.getElementById('itensLicBody');
+      tbody.innerHTML = '';
+      
+      const licId = document.getElementById('iLicSelect').value;
+      const fornId = document.getElementById('iFornSelect').value;
+      
+      if (!licId || !fornId) {
+        tbody.innerHTML = `<tr><td colspan="10" style="padding:18px;color:var(--app-muted);text-align:center">
+          <i class="fas fa-info-circle"></i> Selecione uma licitação e um fornecedor
+        </td></tr>`;
+        return;
+      }
+      
+      const itensFiltrados = DB.licitacoesItens.filter(item => 
+        Number(item.licitacaoId) === Number(licId) && 
+        Number(item.fornecedorId) === Number(fornId)
+      );
+      
+      if (itensFiltrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="padding:18px;color:var(--app-muted);text-align:center">
+          <i class="fas fa-inbox"></i> Nenhum item cadastrado para esta combinação
+        </td></tr>`;
+        return;
+      }
+      
+      itensFiltrados.forEach(item => {
+        const lic = DB.licitacoes.find(l => Number(l.id) === Number(item.licitacaoId));
+        const forn = DB.fornecedores.find(f => Number(f.id) === Number(item.fornecedorId));
+        const subtotal = (item.quantidade || 1) * (item.preco || 0);
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${lic ? (lic.numero || `LIC-${lic.id}`) : `#${item.licitacaoId}`}</td>
+          <td>${forn ? (forn.razao_social || forn.nome_fantasia) : `#${item.fornecedorId}`}</td>
+          <td>${item.nome || '—'}</td>
+          <td>${item.descricao || '—'}</td>
+          <td>${money(item.preco)}</td>
+          <td>${item.unidade || 'UN'}</td>
+          <td>${item.quantidade}</td>
+          <td>${item.quantidade_minima}</td>
+          <td>${money(subtotal)}</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn btn-warning btn-sm" onclick="editarItem(${item.id})">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="excluirItem(${item.id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateTotalItensPill() {
+      const licId = document.getElementById('iLicSelect').value;
+      const fornId = document.getElementById('iFornSelect').value;
+      
+      const itensFiltrados = DB.licitacoesItens.filter(item => 
+        (!licId || Number(item.licitacaoId) === Number(licId)) &&
+        (!fornId || Number(item.fornecedorId) === Number(fornId))
+      );
+      
+      const total = itensFiltrados.reduce((sum, item) => 
+        sum + ((item.quantidade || 1) * (item.preco || 0)), 0);
+      
+      document.getElementById('totalItensPill').innerHTML = `
+        <i class="fas fa-calculator"></i>
+        ${itensFiltrados.length} item(ns) | Total: ${money(total)}
+      `;
+    }
+
+    function setItensDirty(v) {
+      itensDirty = v;
+      const pill = document.getElementById('itensDirtyPill');
+      pill.style.display = v ? 'inline-flex' : 'none';
+      document.getElementById('saveItensNote').textContent = v
+        ? '⚠️ Alterações pendentes. Clique em "Salvar itens".'
+        : 'Sem alterações pendentes.';
+    }
+
+    // Funções globais para os botões
+    window.editarItem = function(itemId) {
+      if (!canManage()) {
+        toast('Somente gerente/adm podem editar itens', 'warning');
+        return;
+      }
+      
+      const item = DB.licitacoesItens.find(it => Number(it.id) === Number(itemId));
+      if (!item) {
+        toast('Item não encontrado', 'error');
+        return;
+      }
+      
+      // Preenche os selects primeiro
+      document.getElementById('iLicSelect').value = item.licitacaoId;
+      document.getElementById('iFornSelect').value = item.fornecedorId;
+      
+      // Preenche os campos do formulário
+      document.getElementById('iItemNome').value = item.nome || '';
+      document.getElementById('iItemDescricao').value = item.descricao || '';
+      document.getElementById('iItemPreco').value = item.preco || 0;
+      document.getElementById('iItemUnidade').value = item.unidade || 'UN';
+      document.getElementById('iItemQuantidade').value = item.quantidade || 1;
+      document.getElementById('iItemQtdMin').value = item.quantidade_minima || 1;
+      
+      // Atualiza o botão
+      const btn = document.getElementById('addItemLicBtn');
+      btn.innerHTML = '<i class="fas fa-save"></i> Salvar edição';
+      btn.onclick = () => salvarItemEditado(itemId);
+      
+      editingItem = itemId;
+      toast('Item carregado para edição', 'info');
+    };
+
+    window.excluirItem = function(itemId) {
+      if (!canManage()) {
+        toast('Somente gerente/adm podem excluir itens', 'warning');
+        return;
+      }
+      
+      if (!confirm('Excluir este item?')) return;
+      
+      DB.licitacoesItens = DB.licitacoesItens.filter(it => Number(it.id) !== Number(itemId));
+      setItensDirty(true);
+      
+      renderModalItens();
+      updateTotalItensPill();
+      renderTable();
+      toast('Item removido (rascunho)', 'success');
+    };
+
+    function adicionarItem() {
+      if (!canManage()) {
+        toast('Somente gerente/adm podem adicionar itens', 'warning');
+        return;
+      }
+      
+      const licId = document.getElementById('iLicSelect').value;
+      const fornId = document.getElementById('iFornSelect').value;
+      const nome = (document.getElementById('iItemNome').value || '').trim();
+      const descricao = (document.getElementById('iItemDescricao').value || '').trim();
+      const preco = Number(document.getElementById('iItemPreco').value || 0);
+      const unidade = (document.getElementById('iItemUnidade').value || 'UN').trim();
+      const quantidade = Number(document.getElementById('iItemQuantidade').value || 1);
+      const qtdMin = Number(document.getElementById('iItemQtdMin').value || 1);
+      
+      if (!licId || !fornId) {
+        toast('Selecione uma licitação e um fornecedor', 'warning');
+        return;
+      }
+      
+      if (!nome) {
+        toast('Informe o nome do item', 'warning');
+        return;
+      }
+      
+      if (preco <= 0) {
+        toast('Preço deve ser maior que zero', 'warning');
+        return;
+      }
+      
+      if (quantidade <= 0) {
+        toast('Quantidade deve ser maior que zero', 'warning');
+        return;
+      }
+      
+      if (qtdMin <= 0) {
+        toast('Quantidade mínima deve ser maior que zero', 'warning');
+        return;
+      }
+      
+      if (qtdMin > quantidade) {
+        toast('Quantidade mínima não pode ser maior que a quantidade disponível', 'warning');
+        return;
+      }
+      
+      const nextId = DB.licitacoesItens.reduce((max, it) => Math.max(max, Number(it.id || 0)), 0) + 1;
+      
+      DB.licitacoesItens.push({
+        id: nextId,
+        licitacaoId: Number(licId),
+        fornecedorId: Number(fornId),
+        nome,
+        descricao,
+        preco,
+        unidade,
+        quantidade,
+        quantidade_minima: qtdMin,
+        data_cadastro: new Date().toISOString().split('T')[0]
+      });
+      
+      setItensDirty(true);
+      resetItemForm();
+      renderModalItens();
+      updateTotalItensPill();
+      renderTable();
+      toast('Item adicionado (rascunho)', 'success');
+    }
+
+    function salvarItemEditado(itemId) {
+      if (!canManage()) {
+        toast('Somente gerente/adm podem editar itens', 'warning');
+        return;
+      }
+      
+      const licId = document.getElementById('iLicSelect').value;
+      const fornId = document.getElementById('iFornSelect').value;
+      const nome = (document.getElementById('iItemNome').value || '').trim();
+      const descricao = (document.getElementById('iItemDescricao').value || '').trim();
+      const preco = Number(document.getElementById('iItemPreco').value || 0);
+      const unidade = (document.getElementById('iItemUnidade').value || 'UN').trim();
+      const quantidade = Number(document.getElementById('iItemQuantidade').value || 1);
+      const qtdMin = Number(document.getElementById('iItemQtdMin').value || 1);
+      
+      if (!licId || !fornId) {
+        toast('Selecione uma licitação e um fornecedor', 'warning');
+        return;
+      }
+      
+      if (!nome) {
+        toast('Informe o nome do item', 'warning');
+        return;
+      }
+      
+      if (preco <= 0) {
+        toast('Preço deve ser maior que zero', 'warning');
+        return;
+      }
+      
+      if (quantidade <= 0) {
+        toast('Quantidade deve ser maior que zero', 'warning');
+        return;
+      }
+      
+      if (qtdMin <= 0) {
+        toast('Quantidade mínima deve ser maior que zero', 'warning');
+        return;
+      }
+      
+      if (qtdMin > quantidade) {
+        toast('Quantidade mínima não pode ser maior que a quantidade disponível', 'warning');
+        return;
+      }
+      
+      const idx = DB.licitacoesItens.findIndex(it => Number(it.id) === Number(itemId));
+      if (idx === -1) {
+        toast('Item não encontrado', 'error');
+        return;
+      }
+      
+      DB.licitacoesItens[idx] = {
+        ...DB.licitacoesItens[idx],
+        licitacaoId: Number(licId),
+        fornecedorId: Number(fornId),
+        nome,
+        descricao,
+        preco,
+        unidade,
+        quantidade,
+        quantidade_minima: qtdMin
+      };
+      
+      setItensDirty(true);
+      resetItemForm();
+      renderModalItens();
+      updateTotalItensPill();
+      renderTable();
+      toast('Item atualizado (rascunho)', 'success');
+    }
+
+    async function salvarItens() {
+      if (!canManage()) {
+        toast('Somente gerente/adm podem salvar itens', 'warning');
+        return;
+      }
+      
+      if (!itensDirty) {
+        toast('Nenhuma alteração pendente para salvar', 'info');
+        return;
+      }
+      
+      try {
+        document.getElementById('saveItensNote').textContent = 'Salvando itens no servidor...';
+        
+        await apiPost(API.push, { key: KEYS.licitacoesItens, value: DB.licitacoesItens });
+        
+        setItensDirty(false);
+        document.getElementById('saveItensNote').textContent = 'Itens salvos com sucesso!';
+        toast('Itens salvos com sucesso', 'success');
+        
+        // Recarrega os dados para garantir sincronização
+        await loadAllData();
+        
+        // Atualiza a modal
+        renderModalItens();
+        updateTotalItensPill();
+      } catch (e) {
+        document.getElementById('saveItensNote').textContent = 'Erro ao salvar itens';
+        toast('Erro ao salvar itens: ' + (e?.message || 'Erro desconhecido'), 'error');
+      }
+    }
+
+    // =========================
+    // EVENT LISTENERS
+    // =========================
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Tema
+      initTheme();
+      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        const current = html.getAttribute('data-theme') || 'light';
+        applyTheme(current === 'light' ? 'dark' : 'light');
+      });
+
+      // Menu mobile
+      menuBtn.addEventListener('click', () => sidebar.classList.contains('show') ? closeSidebar() : openSidebar());
+      overlay.addEventListener('click', closeSidebar);
+
+      // ESC fecha menus/modais
+      document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (sidebar.classList.contains('show')) closeSidebar();
+        if (modalLic.classList.contains('show')) closeModalLic();
+        if (modalItens.classList.contains('show')) closeModalItens();
+      });
+
+
+      // Carrega usuário e dados
+      await loadUser();
+      await loadAllData();
+
+      // Filtros padrão (últimos 30 dias)
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+      document.getElementById('fFrom').value = thirtyDaysAgo.toISOString().split('T')[0];
+      document.getElementById('fTo').value = now.toISOString().split('T')[0];
+
+      // Botões principais
+      document.getElementById('refreshBtn').addEventListener('click', async () => {
+        toast('Atualizando dados...', 'info');
+        await loadAllData();
+      });
+
+      document.getElementById('newLicBtn').addEventListener('click', () => openModalLic(null));
+      document.getElementById('gerenciarItensBtn').addEventListener('click', openModalItens);
+
+      // Filtros
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('fStatus').value = 'all';
+        document.getElementById('fQuery').value = '';
+        document.getElementById('fFrom').value = '';
+        document.getElementById('fTo').value = '';
+        renderTable();
+      });
+
+      document.getElementById('applyBtn').addEventListener('click', renderTable);
+
+      // Modal licitação
+      document.getElementById('closeModalLic').addEventListener('click', closeModalLic);
+      document.getElementById('cancelLicBtn').addEventListener('click', closeModalLic);
+      document.getElementById('saveLicBtn').addEventListener('click', salvarLicitacao);
+
+      // Modal itens
+      document.getElementById('closeModalItens').addEventListener('click', closeModalItens);
+      document.getElementById('cancelItensBtn').addEventListener('click', closeModalItens);
+      
+      // Configura o botão de adicionar item
+      document.getElementById('addItemLicBtn').addEventListener('click', adicionarItem);
+      
+      // Botão para salvar itens
+      document.getElementById('saveItensBtn').addEventListener('click', salvarItens);
+      
+      // Botão para limpar seleção
+      document.getElementById('limparItensBtn').addEventListener('click', () => {
+        document.getElementById('iLicSelect').value = '';
+        document.getElementById('iFornSelect').value = '';
+        resetItemForm();
+        renderModalItens();
+        updateTotalItensPill();
+      });
+      
+      // Eventos para os selects
+      document.getElementById('iLicSelect').addEventListener('change', () => {
+        resetItemForm();
+        renderModalItens();
+        updateTotalItensPill();
+      });
+      
+      document.getElementById('iFornSelect').addEventListener('change', () => {
+        resetItemForm();
+        renderModalItens();
+        updateTotalItensPill();
+      });
+
+      // Logout
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        if (confirm('Deseja realmente sair do sistema?')) {
+          localStorage.removeItem('compraPlus_token_v1');
+          localStorage.removeItem('access_token');
+          toast('Saindo do sistema...', 'info');
+          setTimeout(() => { window.location.href = isFile ? 'index_corrigido.html' : '/'; }, 500);
+        }
+      });
+
+      // Cliques na tabela
+      document.getElementById('tbody').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+
+        const action = btn.dataset.action;
+        const id = Number(btn.dataset.id);
+        
+        if (!id) return;
+
+        const licitacao = DB.licitacoes.find(x => Number(x.id) === id);
+        if (!licitacao) {
+          toast('Licitação não encontrada', 'error');
+          return;
+        }
+
+        switch (action) {
+          case 'edit':
+            openModalLic(licitacao);
+            break;
+          case 'del':
+            excluirLicitacao(id);
+            break;
+          case 'itens':
+            openModalItens();
+            // Seleciona automaticamente a licitação
+            document.getElementById('iLicSelect').value = String(id);
+            renderModalItens();
+            updateTotalItensPill();
+            break;
+        }
+      });
+
+      toast('Sistema de licitações carregado!', 'success');
+    });
+  </script>
+</body>
+</html>

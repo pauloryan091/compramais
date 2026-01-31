@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Fornecedores | Compra+</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    /* (Mantido igual) */
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+    body{background:var(--app-bg);color:var(--app-text);min-height:100vh;overflow-x:hidden}
+
+    :root{
+      --primary:#1e40af; --primary-light:#3b82f6; --primary-dark:#1e3a8a;
+      --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#0ea5e9;
+
+      --gray-50:#f8fafc; --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+      --gray-400:#94a3b8; --gray-500:#64748b; --gray-600:#475569; --gray-700:#334155; --gray-800:#1e293b;
+
+      --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+      --shadow-md:0 8px 20px rgba(0,0,0,.08);
+      --shadow-lg:0 20px 50px rgba(0,0,0,.15);
+
+      --transition:all .25s ease;
+      --sidebar-w:260px;
+
+      --app-bg:#f8fafc; --app-card:#ffffff; --app-card-2:#f8fafc;
+      --app-text:#1e293b; --app-muted:#64748b; --app-border:#e2e8f0;
+      --app-input:#ffffff; --app-input-border:#e2e8f0;
+      --app-header:#ffffff; --app-profile:#f1f5f9; --app-profile-hover:#e2e8f0;
+      --app-table-head:#ffffff;
+    }
+    html[data-theme="dark"]{
+      --app-bg:#0b1220; --app-card:#0f172a; --app-card-2:#0b1220;
+      --app-text:#e5e7eb; --app-muted:#94a3b8; --app-border:#1f2a3a;
+      --app-input:#0b1220; --app-input-border:#1f2a3a;
+      --app-header:#0f172a; --app-profile:#111c30; --app-profile-hover:#172746;
+      --app-table-head:#0b1220;
+    }
+
+    .dashboard{display:flex;min-height:100vh}
+    .main{flex:1;min-width:0;margin-left:var(--sidebar-w);transition:var(--transition)}
+
+    .sidebar{
+      position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+      background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+      color:#fff;padding:18px 12px;box-shadow:5px 0 18px rgba(0,0,0,.12);
+      z-index:1200;transition:transform .28s ease;
+    }
+    .brand{
+      padding:10px 12px 18px;border-bottom:1px solid rgba(255,255,255,.12);
+      margin-bottom:12px;display:flex;align-items:center;gap:10px;
+    }
+    .brand i{font-size:1.35rem}
+    .brand h2{font-size:1.5rem;letter-spacing:.2px}
+    .brand h2 span{color:#60a5fa}
+
+    .nav{padding:8px 6px}
+    .nav a{
+      display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);
+      color:rgba(255,255,255,.86);text-decoration:none;transition:var(--transition);margin-bottom:6px;
+    }
+    .nav a i{width:20px;text-align:center}
+    .nav a:hover,.nav a.active{background:rgba(255,255,255,.12);color:#fff;transform:translateX(4px)}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:1100}
+    .overlay.show{display:block}
+
+    .header{
+      position:sticky;top:0;z-index:900;background:var(--app-header);
+      box-shadow:var(--shadow-sm);min-height:72px;padding:14px 18px;
+      display:flex;align-items:center;gap:14px;justify-content:space-between;border-bottom:1px solid var(--app-border);
+    }
+    .header-left{display:flex;align-items:center;gap:12px;min-width:0}
+    .menu-btn{
+      display:none;border:none;background:var(--gray-100);color:var(--primary);
+      width:44px;height:44px;border-radius:12px;cursor:pointer;transition:var(--transition);flex:0 0 auto;
+    }
+    html[data-theme="dark"] .menu-btn{background:#111c30;color:#93c5fd}
+    html[data-theme="dark"] .menu-btn:hover{background:#172746}
+    .menu-btn:hover{background:var(--gray-200)}
+    .title-wrap h2{font-size:1.25rem;color:var(--primary);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .title-wrap p{font-size:.9rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .profile{
+      display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--app-profile);
+      border-radius:999px;cursor:pointer;transition:var(--transition);
+      min-width:180px;max-width:340px;border:1px solid var(--app-border);
+    }
+    .profile:hover{background:var(--app-profile-hover)}
+    .avatar{
+      width:38px;height:38px;border-radius:999px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-light));
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex:0 0 auto;
+    }
+    .pinfo h4{font-size:.92rem;color:var(--app-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+    .pinfo p{font-size:.8rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:11px 16px;border:none;border-radius:var(--radius-lg);cursor:pointer;font-weight:800;
+      transition:var(--transition);text-decoration:none;white-space:nowrap;
+    }
+    .btn:active{transform:scale(.99)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;box-shadow:0 8px 18px rgba(59,130,246,.18)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(59,130,246,.25)}
+    .btn-secondary{background:var(--gray-100);color:var(--gray-700);border:2px solid var(--gray-200)}
+    html[data-theme="dark"] .btn-secondary{background:#111c30;color:#e5e7eb;border-color:var(--app-border)}
+    html[data-theme="dark"] .btn-secondary:hover{background:#172746}
+    .btn-warning{background:linear-gradient(135deg,var(--warning),#fbbf24);color:#fff}
+    .btn-danger{background:linear-gradient(135deg,var(--danger),#f87171);color:#fff}
+    .btn-sm{padding:8px 12px;border-radius:14px;font-size:.9rem}
+
+    .logout{
+      border:none;background:var(--danger);color:#fff;padding:10px 14px;border-radius:999px;cursor:pointer;
+      font-weight:800;display:flex;align-items:center;gap:8px;transition:var(--transition);white-space:nowrap;
+    }
+    .logout:hover{background:#dc2626;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+
+    .content{padding:20px}
+    .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:14px 0 18px;flex-wrap:wrap}
+    .page-head h1{font-size:1.7rem;color:var(--primary);line-height:1.1}
+    .page-head p{color:var(--app-muted);margin-top:8px}
+    .actions-top{display:flex;gap:10px;flex-wrap:wrap}
+
+    .card{
+      background:var(--app-card);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-md);
+      overflow:hidden;
+      border:1px solid var(--app-border);
+    }
+    .card-head{
+      padding:16px;border-bottom:1px solid var(--app-border);
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--app-card);
+    }
+    .card-head h3{display:flex;align-items:center;gap:10px;color:var(--app-text);font-size:1.15rem}
+
+    .filters{
+      padding:16px;
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:12px;
+    }
+    .fg{display:flex;flex-direction:column;gap:8px}
+    .fg label{font-weight:900;color:var(--gray-600);font-size:.92rem}
+    html[data-theme="dark"] .fg label{color:var(--app-muted)}
+    .input,.select{
+      width:100%;padding:12px 12px;border:2px solid var(--app-input-border);
+      border-radius:14px;outline:none;transition:var(--transition);
+      background:var(--app-input);color:var(--app-text);
+    }
+    .input:focus,.select:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+    .filter-actions{padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+    .twrap{
+      margin:16px;border:1px solid var(--app-border);border-radius:16px;overflow:auto;background:var(--app-card);
+      max-height:560px;
+    }
+    table{width:100%;border-collapse:collapse;min-width:1200px}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--app-border);text-align:left;vertical-align:middle}
+    th{color:var(--app-muted);font-size:.9rem;font-weight:900;background:var(--app-table-head);position:sticky;top:0}
+
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;font-weight:900;font-size:.85rem;
+      border:1px solid var(--app-border);background:var(--app-card-2);white-space:nowrap;
+    }
+    .st-ok{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+    .st-bad{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    html[data-theme="dark"] .st-ok{background:rgba(16,185,129,.14);color:#a7f3d0;border-color:rgba(16,185,129,.22)}
+    html[data-theme="dark"] .st-bad{background:rgba(239,68,68,.14);color:#fecaca;border-color:rgba(239,68,68,.22)}
+
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    .toast{
+      position:fixed;top:18px;right:18px;z-index:3000;
+      background:var(--app-card);border-radius:16px;box-shadow:var(--shadow-lg);
+      border-left:5px solid var(--primary);padding:12px 14px;
+      display:flex;gap:10px;align-items:center;
+      max-width:min(420px, calc(100vw - 36px));
+      transform:translateX(140%);transition:transform .25s ease;color:var(--app-text);
+    }
+    .toast.show{transform:translateX(0)}
+    .toast i{color:var(--primary)}
+
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:2000;padding:18px}
+    .modal-overlay.show{display:flex}
+    .modal{
+      width:min(900px, 100%);
+      background:var(--app-card);border:1px solid var(--app-border);
+      border-radius:20px;box-shadow:var(--shadow-lg);overflow:hidden;
+    }
+    .modal-head{padding:16px;border-bottom:1px solid var(--app-border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .modal-head h3{display:flex;align-items:center;gap:10px;color:var(--primary);font-size:1.1rem}
+    .close{border:none;background:transparent;color:var(--app-muted);width:42px;height:42px;border-radius:12px;cursor:pointer;transition:var(--transition)}
+    .close:hover{background:var(--app-card-2);color:var(--danger)}
+    .modal-body{padding:16px}
+    .modal-actions{padding:0 16px 16px;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+
+    .grid2{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px}
+
+    /* ===== FIX MODAL RESPONSIVO ===== */
+    .modal{
+      max-height: calc(100svh - 36px); /* considera padding do overlay */
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-head{flex: 0 0 auto;}
+    .modal-actions{flex: 0 0 auto;}
+    .modal-body{
+      flex: 1 1 auto;
+      min-height: 0;          /* permite overflow funcionar em flex */
+      overflow: auto;         /* scroll interno no mobile */
+      -webkit-overflow-scrolling: touch;
+    }
+    @media (max-width: 600px){
+      .modal-overlay{padding: 12px;}
+      .modal{border-radius: 16px;}
+      .grid2{grid-template-columns: 1fr;}
+    }
+
+
+    @media (max-width: 992px){
+      .menu-btn{display:inline-flex;align-items:center;justify-content:center}
+      .main{margin-left:0}
+      .sidebar{transform:translateX(-105%)}
+      .sidebar.show{transform:translateX(0)}
+      .filters{grid-template-columns:repeat(2, minmax(0,1fr))}
+      table{min-width:980px}
+      .grid2{grid-template-columns:1fr}
+    }
+    @media (max-width: 640px){
+      .header{flex-wrap:wrap;align-items:flex-start}
+      .header-right{width:100%;justify-content:space-between}
+      .profile{flex:1;min-width:0}
+      .btn{width:100%}
+      .filter-actions{justify-content:stretch}
+      .filters{grid-template-columns:1fr}
+      table{min-width:920px}
+    }
+  
+    /* ===== MELHORIAS RESPONSIVAS (EXTRAS) ===== */
+    :root{
+      --fs-h1: clamp(1.35rem, 3.2vw, 1.8rem);
+      --fs-h2: clamp(1.05rem, 2.2vw, 1.25rem);
+      --fs-body: clamp(.95rem, 1.2vw, 1rem);
+    }
+    body{ font-size: var(--fs-body); min-height: 100svh; }
+    .page-head h1{ font-size: var(--fs-h1); }
+    .title-wrap h2{ font-size: var(--fs-h2); }
+    .header{
+      padding-top: calc(14px + env(safe-area-inset-top));
+      padding-left: calc(18px + env(safe-area-inset-left));
+      padding-right: calc(18px + env(safe-area-inset-right));
+    }
+    .twrap{ -webkit-overflow-scrolling: touch; }
+    @media (max-width: 420px){
+      .logout{ width: 100%; justify-content:center; }
+      .btn-secondary{ width: 100%; }
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <div class="dashboard">
+    <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+      <div class="brand">
+        <i class="fas fa-shopping-cart"></i>
+        <h2>Compra<span>+</span></h2>
+      </div>
+
+        <nav class="nav">
+        <!-- Menu será gerado dinamicamente -->
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="title-wrap">
+            <h2>Fornecedores</h2>
+            <p id="rtInfo">Carregando do banco...</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="profile" id="userProfile" title="Perfil do usuário">
+            <div class="avatar" id="userAvatar">A</div>
+            <div class="pinfo">
+              <h4 id="userName">Carregando...</h4>
+              <p id="userRole">—</p>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary" id="themeToggleBtn" title="Alternar tema">
+            <i class="fas fa-moon" id="themeIcon"></i>
+            <span id="themeText">Escuro</span>
+          </button>
+
+          <button class="logout" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="page-head">
+          <div>
+            <h1>Cadastro de Fornecedores</h1>
+            <p>CRUD real no SQLite (tabela <b>fornecedores</b>) + Realtime (SSE).</p>
+          </div>
+
+          <div class="actions-top">
+            <button class="btn btn-secondary" id="refreshBtn"><i class="fas fa-rotate"></i> Atualizar</button>
+            <button class="btn btn-primary" id="newBtn"><i class="fas fa-plus-circle"></i> Novo fornecedor</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3><i class="fas fa-filter"></i> Filtro</h3>
+          </div>
+
+          <div class="filters">
+            <div class="fg">
+              <label for="fStatus">Status</label>
+              <select class="select" id="fStatus">
+                <option value="all">Todos</option>
+                <option value="active">Ativos</option>
+                <option value="inactive">Inativos</option>
+              </select>
+            </div>
+
+            <div class="fg" style="grid-column:span 3">
+              <label for="fQuery">Buscar</label>
+              <input class="input" id="fQuery" placeholder="Razão social, fantasia, CNPJ, email, telefone, contato..." />
+            </div>
+          </div>
+
+          <div class="filter-actions">
+            <button class="btn btn-secondary" id="clearBtn"><i class="fas fa-rotate-left"></i> Limpar</button>
+            <button class="btn btn-primary" id="applyBtn"><i class="fas fa-magnifying-glass"></i> Aplicar</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="card-head">
+            <h3><i class="fas fa-list"></i> Lista</h3>
+            <div class="row-actions">
+              <span class="pill st-ok" id="onlinePill"><i class="fas fa-signal"></i> Online</span>
+            </div>
+          </div>
+
+          <div class="twrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Razão Social</th>
+                  <th>Fantasia</th>
+                  <th>CNPJ</th>
+                  <th>Email</th>
+                  <th>Telefone</th>
+                  <th>Contato</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-head">
+        <h3><i class="fas fa-truck"></i> <span id="modalTitle">Novo fornecedor</span></h3>
+        <button class="close" id="closeModal" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="grid2">
+          <div class="fg">
+            <label for="mRazao">Razão Social *</label>
+            <input class="input" id="mRazao" placeholder="Ex: Fornecedor ABC Ltda." />
+          </div>
+          <div class="fg">
+            <label for="mFantasia">Nome Fantasia</label>
+            <input class="input" id="mFantasia" placeholder="Ex: ABC" />
+          </div>
+
+          <div class="fg">
+            <label for="mCnpj">CNPJ *</label>
+            <input class="input" id="mCnpj" placeholder="00.000.000/0001-00" />
+          </div>
+          <div class="fg">
+            <label for="mIe">Inscrição Estadual</label>
+            <input class="input" id="mIe" placeholder="Opcional" />
+          </div>
+
+          <div class="fg">
+            <label for="mEmail">Email</label>
+            <input class="input" id="mEmail" type="email" placeholder="contato@fornecedor.com" />
+          </div>
+          <div class="fg">
+            <label for="mTel">Telefone</label>
+            <input class="input" id="mTel" placeholder="(00) 00000-0000" />
+          </div>
+
+          <div class="fg" style="grid-column:1/-1">
+            <label for="mEndereco">Endereço</label>
+            <input class="input" id="mEndereco" placeholder="Rua..., nº..., cidade..." />
+          </div>
+
+          <div class="fg">
+            <label for="mContato">Contato</label>
+            <input class="input" id="mContato" placeholder="Nome do responsável" />
+          </div>
+
+          <div class="fg">
+            <label for="mStatus">Status</label>
+            <select class="select" id="mStatus">
+              <option value="active">Ativo</option>
+              <option value="inactive">Inativo</option>
+            </select>
+          </div>
+        </div>
+        <p style="margin-top:10px;color:var(--app-muted);font-weight:800">
+          * Campos obrigatórios
+        </p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+        <button class="btn btn-primary" id="saveBtn"><i class="fas fa-save"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // =========================
+  // BASE URL (funciona em file:// e em servidor)
+  // =========================
+  const DEFAULT_BACKEND = "http://127.0.0.1:5000";
+  const isFile = window.location.protocol === "file:";
+  const BASE_URL = isFile ? DEFAULT_BACKEND : window.location.origin;
+
+  function apiUrl(path){
+    if (!path) return BASE_URL;
+    if (/^https?:\/\//i.test(path)) return path;
+    return path.startsWith('/') ? (BASE_URL + path) : (BASE_URL + '/' + path);
+  }
+
+  function pageUrl(file){
+    return isFile ? file : ('/' + file);
+  }
+
+  // =========================
+  // API
+  // =========================
+  const API = {
+    list: '/api/fornecedores',
+    create: '/api/fornecedores',
+    events: '/api/events',
+    authCheck: '/api/auth/check'
+  };
+
+  // =========================
+  // Auth / token
+  // =========================
+  function getToken(){
+    return localStorage.getItem('access_token') ||
+           localStorage.getItem('compraPlus_access_token') ||
+           localStorage.getItem('compraPlus_token_v1') || '';
+  }
+
+  async function apiGet(url){
+    const token = getToken();
+    const headers = { 'Accept':'application/json', 'Cache-Control':'no-cache' };
+    if(token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(apiUrl(url), { headers });
+    const data = await res.json().catch(()=> ({}));
+
+    if(!res.ok){
+      const msg = data?.message || `Erro HTTP ${res.status}`;
+      if(res.status === 401){
+        toast('Sessão expirada. Faça login novamente.', 'error');
+        setTimeout(()=> window.location.href = isFile ? 'index_corrigido.html' : '/', 1200);
+      }
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  async function apiSend(url, method, payload){
+    const token = getToken();
+    const headers = { 'Content-Type':'application/json', 'Accept':'application/json' };
+    if(token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(apiUrl(url), { method, headers, body: JSON.stringify(payload || {}) });
+    const data = await res.json().catch(()=> ({}));
+
+    if(!res.ok){
+      const msg = data?.message || `Erro HTTP ${res.status}`;
+      if(res.status === 401){
+        toast('Sessão expirada. Faça login novamente.', 'error');
+        setTimeout(()=> window.location.href = isFile ? 'index_corrigido.html' : '/', 1200);
+      }
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  // =========================
+  // Toast
+  // =========================
+  function toast(msg, type='info'){
+    const el = document.createElement('div');
+    el.className = 'toast';
+    let icon='fa-info-circle', color='var(--primary)';
+    if(type==='success'){ icon='fa-check-circle'; color='var(--success)'; }
+    if(type==='error'){ icon='fa-exclamation-circle'; color='var(--danger)'; }
+    if(type==='warning'){ icon='fa-exclamation-triangle'; color='var(--warning)'; }
+    el.innerHTML = `<i class="fas ${icon}"></i><div style="font-weight:800">${msg}</div>`;
+    el.style.borderLeftColor = color;
+    el.querySelector('i').style.color = color;
+    document.body.appendChild(el);
+    requestAnimationFrame(()=> el.classList.add('show'));
+    setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=> el.remove(), 220); }, 3200);
+  }
+
+  // =========================
+  // Theme
+  // =========================
+  const htmlEl = document.documentElement;
+  const themeIcon = document.getElementById('themeIcon');
+  const themeText = document.getElementById('themeText');
+
+  function applyTheme(theme){
+    htmlEl.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    if(theme === 'dark'){
+      if(themeIcon) themeIcon.className = 'fas fa-sun';
+      if(themeText) themeText.textContent = 'Claro';
+    } else {
+      if(themeIcon) themeIcon.className = 'fas fa-moon';
+      if(themeText) themeText.textContent = 'Escuro';
+    }
+  }
+
+  // =========================
+  // Sidebar (NAV) - mobile
+  // =========================
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const menuBtn = document.getElementById('menuBtn');
+
+  function lockBody(lock){
+    document.body.style.overflow = lock ? 'hidden' : '';
+    document.body.style.touchAction = lock ? 'none' : '';
+  }
+
+  function openSidebar(){
+    sidebar.classList.add('show');
+    overlay.classList.add('show');
+    menuBtn.setAttribute('aria-expanded','true');
+    lockBody(true);
+  }
+
+  function closeSidebar(){
+    sidebar.classList.remove('show');
+    overlay.classList.remove('show');
+    menuBtn.setAttribute('aria-expanded','false');
+    lockBody(false);
+  }
+
+  // =========================
+  // Menu dinâmico
+  // =========================
+  function generateMenu(allowedPages){
+    const nav = document.querySelector('.nav');
+    if(!nav) return;
+
+    const menuItems = {
+      dashboard: { icon: 'fa-tachometer-alt', label: 'Dashboard', href: pageUrl('dashboard.html') },
+      pedidos: { icon: 'fa-clipboard-list', label: 'Pedidos', href: pageUrl('pedidos.html') },
+      licitacoes: { icon: 'fa-gavel', label: 'Licitações', href: pageUrl('licitacoes.html') },
+      fornecedores: { icon: 'fa-truck', label: 'Fornecedores', href: pageUrl('fornecedores.html') },
+      relatorios: { icon: 'fa-chart-bar', label: 'Relatórios', href: pageUrl('relatorios.html') },
+      configuracoes: { icon: 'fa-cog', label: 'Configurações', href: pageUrl('configuracoes.html') },
+      usuarios: { icon: 'fa-users', label: 'Usuários', href: pageUrl('usuarios.html') }
+    };
+
+    nav.innerHTML = '';
+
+    const pages = Array.isArray(allowedPages) ? allowedPages.slice() : [];
+    if(!pages.includes('dashboard')) pages.unshift('dashboard');
+
+    const current = (window.location.pathname.split('/').pop() || 'dashboard.html').toLowerCase();
+
+    for(const key of pages){
+      const item = menuItems[key];
+      if(!item) continue;
+
+      const a = document.createElement('a');
+      a.href = item.href;
+      a.innerHTML = `<i class="fas ${item.icon}"></i><span>${item.label}</span>`;
+
+      if((item.href || '').toLowerCase().includes(current)) a.classList.add('active');
+
+      a.addEventListener('click', () => {
+        if(window.matchMedia('(max-width: 992px)').matches) closeSidebar();
+      });
+
+      nav.appendChild(a);
+    }
+  }
+
+  // =========================
+  // UI Helpers
+  // =========================
+  function setOnline(ok){
+    const pill = document.getElementById('onlinePill');
+    pill.className = 'pill ' + (ok ? 'st-ok' : 'st-bad');
+    pill.innerHTML = ok
+      ? '<i class="fas fa-signal"></i> Online'
+      : '<i class="fas fa-triangle-exclamation"></i> Offline';
+  }
+
+  function pillStatus(st){
+    const s = String(st||'active').toLowerCase();
+    if(s === 'active') return `<span class="pill st-ok"><i class="fas fa-check-circle"></i> Ativo</span>`;
+    return `<span class="pill st-bad"><i class="fas fa-ban"></i> Inativo</span>`;
+  }
+
+  // =========================
+  // State + CRUD
+  // =========================
+  let ROWS = [];
+  let editing = null;
+
+  function getFilters(){
+    const status = document.getElementById('fStatus').value;
+    const q = (document.getElementById('fQuery').value || '').trim();
+    const params = new URLSearchParams();
+    if(status && status !== 'all') params.set('status', status);
+    if(q) params.set('q', q);
+    const qs = params.toString();
+    return qs ? ('?' + qs) : '';
+  }
+
+  async function loadRows(){
+    const rt = document.getElementById('rtInfo');
+    try{
+      const data = await apiGet(API.list + getFilters());
+      ROWS = Array.isArray(data?.fornecedores) ? data.fornecedores : [];
+      rt.textContent = `${ROWS.length} fornecedores carregados do banco (SQLite) + realtime ativo.`;
+      setOnline(true);
+    }catch(e){
+      rt.textContent = 'Falha ao carregar do servidor. Verifique o app.py rodando.';
+      setOnline(false);
+      ROWS = [];
+      toast('Erro ao carregar fornecedores', 'error');
+    }
+  }
+
+  function render(){
+    const tb = document.getElementById('tbody');
+    tb.innerHTML = '';
+
+    if(!ROWS.length){
+      tb.innerHTML = `<tr><td colspan="9" style="padding:18px;color:var(--app-muted)">
+        <i class="fas fa-inbox"></i> Nenhum fornecedor encontrado.
+      </td></tr>`;
+      return;
+    }
+
+    for(const r of ROWS){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:900">${r.id}</td>
+        <td style="font-weight:900">${r.razao_social || r.nome || ''}</td>
+        <td>${r.nome_fantasia || r.fantasia || '-'}</td>
+        <td>${r.cnpj_formatado || r.cnpj || '-'}</td>
+        <td>${r.email || '-'}</td>
+        <td>${r.telefone || '-'}</td>
+        <td>${r.contato || '-'}</td>
+        <td>${pillStatus(r.status)}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn btn-warning btn-sm" data-action="edit" data-id="${r.id}" title="Editar">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-danger btn-sm" data-action="del" data-id="${r.id}" title="Excluir">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      tb.appendChild(tr);
+    }
+  }
+
+  // Modal
+  function openModal(row=null){
+    editing = row;
+    document.getElementById('modalTitle').textContent = row ? ('Editar fornecedor #' + row.id) : 'Novo fornecedor';
+
+    document.getElementById('mRazao').value = row?.razao_social || row?.nome || '';
+    document.getElementById('mFantasia').value = row?.nome_fantasia || row?.fantasia || '';
+    document.getElementById('mCnpj').value = row?.cnpj_formatado || row?.cnpj || '';
+    document.getElementById('mIe').value = row?.inscricao_estadual || '';
+    document.getElementById('mEmail').value = row?.email || '';
+    document.getElementById('mTel').value = row?.telefone || '';
+    document.getElementById('mEndereco').value = row?.endereco || '';
+    document.getElementById('mContato').value = row?.contato || '';
+    document.getElementById('mStatus').value = row?.status || 'active';
+
+    document.getElementById('modal').classList.add('show');
+  }
+
+  function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+    editing = null;
+  }
+
+  async function save(){
+    const cnpjInput = (document.getElementById('mCnpj').value||'').trim();
+    const cnpjLimpo = cnpjInput.replace(/\D/g, '');
+
+    const payload = {
+      razao_social: (document.getElementById('mRazao').value||'').trim(),
+      nome_fantasia: (document.getElementById('mFantasia').value||'').trim(),
+      cnpj: cnpjLimpo,
+      inscricao_estadual: (document.getElementById('mIe').value||'').trim(),
+      email: (document.getElementById('mEmail').value||'').trim(),
+      telefone: (document.getElementById('mTel').value||'').trim(),
+      endereco: (document.getElementById('mEndereco').value||'').trim(),
+      contato: (document.getElementById('mContato').value||'').trim(),
+      status: document.getElementById('mStatus').value
+    };
+
+    if(!payload.razao_social || !payload.cnpj){
+      toast('Razão social e CNPJ são obrigatórios', 'warning');
+      return;
+    }
+    if(payload.cnpj.length !== 14){
+      toast('CNPJ deve ter 14 dígitos (apenas números)', 'warning');
+      return;
+    }
+
+    try{
+      if(editing){
+        await apiSend('/api/fornecedores/' + editing.id, 'PUT', payload);
+        toast('Fornecedor atualizado!', 'success');
+      }else{
+        await apiSend(API.create, 'POST', payload);
+        toast('Fornecedor criado!', 'success');
+      }
+      closeModal();
+      await loadRows();
+      render();
+    }catch(e){
+      toast('Erro: ' + (e?.message || 'Falha ao salvar'), 'error');
+    }
+  }
+
+  async function delRow(id){
+    if(!confirm('Tem certeza que deseja excluir este fornecedor?')) return;
+    try{
+      await apiSend('/api/fornecedores/' + id, 'DELETE', {});
+      toast('Fornecedor removido!', 'success');
+      await loadRows();
+      render();
+    }catch(e){
+      toast('Erro: ' + (e?.message || 'Falha ao excluir'), 'error');
+    }
+  }
+
+  // Realtime (SSE)
+  function startRealtime(){
+    let es;
+    try{
+      const token = getToken();
+      const url = token ? (API.events + '?token=' + encodeURIComponent(token)) : API.events;
+      es = new EventSource(apiUrl(url));
+    }catch(e){
+      return;
+    }
+
+    es.addEventListener('hello', ()=>{
+      document.getElementById('rtInfo').textContent = 'Realtime ativo (SSE).';
+    });
+
+    es.addEventListener('data_updated', async (evt)=>{
+      try{
+        const payload = JSON.parse(evt.data || '{}');
+        const key = payload?.data?.key || '';
+        if(key === 'fornecedores_db' || key === 'fornecedores'){
+          await loadRows();
+          render();
+          toast('Atualizado em tempo real', 'info');
+        }
+      }catch(e){}
+    });
+
+    es.onerror = ()=>{
+      document.getElementById('rtInfo').textContent = 'Realtime instável (SSE). Tentando reconectar...';
+    };
+  }
+
+  // =========================
+  // Boot
+  // =========================
+  document.addEventListener('DOMContentLoaded', async ()=>{
+    // Theme
+    applyTheme(localStorage.getItem('theme') || 'light');
+    document.getElementById('themeToggleBtn')?.addEventListener('click', ()=>{
+      const t = htmlEl.getAttribute('data-theme') || 'light';
+      applyTheme(t === 'light' ? 'dark' : 'light');
+    });
+
+    // Sidebar button (NAV)
+    menuBtn?.addEventListener('click', ()=>{
+      sidebar.classList.contains('show') ? closeSidebar() : openSidebar();
+    });
+    overlay?.addEventListener('click', closeSidebar);
+
+    // ESC fecha modal + sidebar
+    document.addEventListener('keydown', (e)=>{
+      if(e.key !== 'Escape') return;
+      closeModal();
+      if(sidebar.classList.contains('show')) closeSidebar();
+    });
+
+    // Logout
+    document.getElementById('logoutBtn')?.addEventListener('click', ()=>{
+      if(confirm('Deseja sair do sistema?')){
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('compraPlus_token_v1');
+        localStorage.removeItem('compraPlus_access_token');
+        localStorage.removeItem('user');
+        toast('Saindo...', 'info');
+        setTimeout(()=> window.location.href = isFile ? 'index_corrigido.html' : '/', 500);
+      }
+    });
+
+    // Load user + menu
+    try{
+      const data = await apiGet(API.authCheck);
+      if(data?.authenticated && data.user){
+        const user = {
+          name: data.user.name || 'Usuário',
+          role: data.user.role || '—',
+          allowed_pages: data.user.allowed_pages || []
+        };
+
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userRole').textContent = 'Perfil: ' + user.role;
+        document.getElementById('userAvatar').textContent = String(user.name.trim().charAt(0)).toUpperCase();
+
+        generateMenu(user.allowed_pages);
+      }else{
+        generateMenu(['dashboard']);
+        toast('Não autenticado. Faça login.', 'warning');
+        setTimeout(()=> window.location.href = isFile ? 'index_corrigido.html' : '/', 1200);
+        return;
+      }
+    }catch(e){
+      generateMenu(['dashboard']);
+    }
+
+    // Eventos
+    document.getElementById('refreshBtn')?.addEventListener('click', async ()=>{
+      toast('Atualizando...', 'info');
+      await loadRows(); render();
+    });
+
+    document.getElementById('clearBtn')?.addEventListener('click', async ()=>{
+      document.getElementById('fStatus').value = 'all';
+      document.getElementById('fQuery').value = '';
+      await loadRows(); render();
+    });
+
+    document.getElementById('applyBtn')?.addEventListener('click', async ()=>{
+      await loadRows(); render();
+    });
+
+    document.getElementById('newBtn')?.addEventListener('click', ()=> openModal(null));
+    document.getElementById('closeModal')?.addEventListener('click', closeModal);
+    document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
+    document.getElementById('saveBtn')?.addEventListener('click', save);
+
+    document.getElementById('tbody')?.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      const action = btn.dataset.action;
+      const id = Number(btn.dataset.id);
+      if(!id) return;
+      const row = ROWS.find(x => Number(x.id) === id);
+
+      if(action === 'edit'){
+        if(!row) return toast('Registro não encontrado', 'error');
+        openModal(row);
+      }
+      if(action === 'del'){
+        delRow(id);
+      }
+    });
+
+    // máscara de CNPJ no modal
+    const cnpjInput = document.getElementById('mCnpj');
+    if(cnpjInput){
+      cnpjInput.addEventListener('input', function(e){
+        let value = e.target.value.replace(/\D/g, '');
+        if(value.length > 14) value = value.substring(0, 14);
+
+        if(value.length <= 2){
+          value = value.replace(/^(\d{0,2})/, '$1');
+        } else if(value.length <= 5){
+          value = value.replace(/^(\d{0,2})(\d{0,3})/, '$1.$2');
+        } else if(value.length <= 8){
+          value = value.replace(/^(\d{0,2})(\d{0,3})(\d{0,3})/, '$1.$2.$3');
+        } else if(value.length <= 12){
+          value = value.replace(/^(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,4})/, '$1.$2.$3/$4');
+        } else {
+          value = value.replace(/^(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2})/, '$1.$2.$3/$4-$5');
+        }
+        e.target.value = value;
+      });
+    }
+
+    // Boot data
+    await loadRows();
+    render();
+    startRealtime();
+  });
+</script>
+
+  
+</body>
+</html>

@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Configurações | Compra+</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+    body{background:var(--app-bg);color:var(--app-text);min-height:100vh;overflow-x:hidden}
+
+    :root{
+      --primary:#1e40af; --primary-light:#3b82f6; --primary-dark:#1e3a8a;
+      --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#0ea5e9;
+
+      --gray-50:#f8fafc; --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+      --gray-400:#94a3b8; --gray-500:#64748b; --gray-600:#475569; --gray-700:#334155; --gray-800:#1e293b;
+
+      --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+      --shadow-md:0 8px 20px rgba(0,0,0,.08);
+      --shadow-lg:0 20px 50px rgba(0,0,0,.15);
+
+      --transition:all .25s ease;
+      --sidebar-w:260px;
+
+      --app-bg:#f8fafc; --app-card:#ffffff; --app-card-2:#f8fafc;
+      --app-text:#1e293b; --app-muted:#64748b; --app-border:#e2e8f0;
+      --app-input:#ffffff; --app-input-border:#e2e8f0;
+      --app-header:#ffffff; --app-profile:#f1f5f9; --app-profile-hover:#e2e8f0;
+      --app-table-head:#ffffff;
+    }
+    html[data-theme="dark"]{
+      --app-bg:#0b1220; --app-card:#0f172a; --app-card-2:#0b1220;
+      --app-text:#e5e7eb; --app-muted:#94a3b8; --app-border:#1f2a3a;
+      --app-input:#0b1220; --app-input-border:#1f2a3a;
+      --app-header:#0f172a; --app-profile:#111c30; --app-profile-hover:#172746;
+      --app-table-head:#0b1220;
+    }
+
+    .dashboard{display:flex;min-height:100vh}
+    .main{flex:1;min-width:0;margin-left:var(--sidebar-w);transition:var(--transition)}
+
+    .sidebar{
+      position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+      background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+      color:#fff;padding:18px 12px;box-shadow:5px 0 18px rgba(0,0,0,.12);
+      z-index:1200;transition:transform .28s ease;
+    }
+    .brand{
+      padding:10px 12px 18px;border-bottom:1px solid rgba(255,255,255,.12);
+      margin-bottom:12px;display:flex;align-items:center;gap:10px;
+    }
+    .brand i{font-size:1.35rem}
+    .brand h2{font-size:1.5rem;letter-spacing:.2px}
+    .brand h2 span{color:#60a5fa}
+
+    .nav{padding:8px 6px}
+    .nav a{
+      display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);
+      color:rgba(255,255,255,.86);text-decoration:none;transition:var(--transition);margin-bottom:6px;
+    }
+    .nav a i{width:20px;text-align:center}
+    .nav a:hover,.nav a.active{background:rgba(255,255,255,.12);color:#fff;transform:translateX(4px)}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:1100}
+    .overlay.show{display:block}
+
+    .header{
+      position:sticky;top:0;z-index:900;background:var(--app-header);
+      box-shadow:var(--shadow-sm);min-height:72px;padding:14px 18px;
+      display:flex;align-items:center;gap:14px;justify-content:space-between;border-bottom:1px solid var(--app-border);
+    }
+    .header-left{display:flex;align-items:center;gap:12px;min-width:0}
+    .menu-btn{
+      display:none;border:none;background:var(--gray-100);color:var(--primary);
+      width:44px;height:44px;border-radius:12px;cursor:pointer;transition:var(--transition);flex:0 0 auto;
+    }
+    html[data-theme="dark"] .menu-btn{background:#111c30;color:#93c5fd}
+    html[data-theme="dark"] .menu-btn:hover{background:#172746}
+    .menu-btn:hover{background:var(--gray-200)}
+    .title-wrap h2{font-size:1.25rem;color:var(--primary);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .title-wrap p{font-size:.9rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .profile{
+      display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--app-profile);
+      border-radius:999px;cursor:pointer;transition:var(--transition);
+      min-width:180px;max-width:340px;border:1px solid var(--app-border);
+    }
+    .profile:hover{background:var(--app-profile-hover)}
+    .avatar{
+      width:38px;height:38px;border-radius:999px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-light));
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex:0 0 auto;
+    }
+    .pinfo h4{font-size:.92rem;color:var(--app-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+    .pinfo p{font-size:.8rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:11px 16px;border:none;border-radius:var(--radius-lg);cursor:pointer;font-weight:800;
+      transition:var(--transition);text-decoration:none;white-space:nowrap;
+    }
+    .btn:active{transform:scale(.99)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;box-shadow:0 8px 18px rgba(59,130,246,.18)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(59,130,246,.25)}
+    .btn-secondary{background:var(--gray-100);color:var(--gray-700);border:2px solid var(--gray-200)}
+    html[data-theme="dark"] .btn-secondary{background:#111c30;color:#e5e7eb;border-color:var(--app-border)}
+    html[data-theme="dark"] .btn-secondary:hover{background:#172746}
+    .btn-success{background:linear-gradient(135deg,var(--success),#34d399);color:#fff}
+    .btn-warning{background:linear-gradient(135deg,var(--warning),#fbbf24);color:#fff}
+    .btn-danger{background:linear-gradient(135deg,var(--danger),#f87171);color:#fff}
+    .btn-sm{padding:8px 12px;border-radius:14px;font-size:.9rem}
+
+    .logout{
+      border:none;background:var(--danger);color:#fff;padding:10px 14px;border-radius:999px;cursor:pointer;
+      font-weight:800;display:flex;align-items:center;gap:8px;transition:var(--transition);white-space:nowrap;
+    }
+    .logout:hover{background:#dc2626;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+
+    .content{padding:20px}
+    .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:14px 0 18px;flex-wrap:wrap}
+    .page-head h1{font-size:1.7rem;color:var(--primary);line-height:1.1}
+    .page-head p{color:var(--app-muted);margin-top:8px}
+    .actions-top{display:flex;gap:10px;flex-wrap:wrap}
+
+    .card{
+      background:var(--app-card);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-md);
+      overflow:hidden;
+      border:1px solid var(--app-border);
+    }
+    .card-head{
+      padding:16px;border-bottom:1px solid var(--app-border);
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--app-card);
+    }
+    .card-head h3{display:flex;align-items:center;gap:10px;color:var(--app-text);font-size:1.15rem}
+
+    .filters{
+      padding:16px;
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:16px;
+    }
+    .fg{display:flex;flex-direction:column;gap:8px}
+    .fg label{font-weight:900;color:var(--gray-600);font-size:.92rem}
+    html[data-theme="dark"] .fg label{color:var(--app-muted)}
+    .input,.select,textarea.input{
+      width:100%;padding:12px 12px;border:2px solid var(--app-input-border);
+      border-radius:14px;outline:none;transition:var(--transition);
+      background:var(--app-input);color:var(--app-text);
+    }
+    .input:focus,.select:focus,textarea.input:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+    .filter-actions{padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+    .twrap{
+      margin:16px;border:1px solid var(--app-border);border-radius:16px;overflow:auto;background:var(--app-card);
+      max-height:400px;
+    }
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--app-border);text-align:left;vertical-align:middle}
+    th{color:var(--app-muted);font-size:.9rem;font-weight:900;background:var(--app-table-head);position:sticky;top:0}
+
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;font-weight:900;font-size:.85rem;
+      border:1px solid var(--app-border);background:var(--app-card-2);white-space:nowrap;
+    }
+    .st-ok{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+    .st-warn{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .st-bad{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    html[data-theme="dark"] .st-ok{background:rgba(16,185,129,.14);color:#a7f3d0;border-color:rgba(16,185,129,.22)}
+    html[data-theme="dark"] .st-warn{background:rgba(245,158,11,.14);color:#fde68a;border-color:rgba(245,158,11,.22)}
+    html[data-theme="dark"] .st-bad{background:rgba(239,68,68,.14);color:#fecaca;border-color:rgba(239,68,68,.22)}
+
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    .toast{
+      position:fixed;top:18px;right:18px;z-index:3000;
+      background:var(--app-card);border-radius:16px;box-shadow:var(--shadow-lg);
+      border-left:5px solid var(--primary);padding:12px 14px;
+      display:flex;gap:10px;align-items:center;
+      max-width:min(420px, calc(100vw - 36px));
+      transform:translateX(140%);transition:transform .25s ease;color:var(--app-text);
+    }
+    .toast.show{transform:translateX(0)}
+    .toast i{color:var(--primary)}
+
+    /* Settings Sections */
+    .settings-section{
+      margin-bottom:30px;
+    }
+    .section-header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:16px;
+      padding-bottom:8px;
+      border-bottom:2px solid var(--app-border);
+    }
+    .section-header h3{
+      font-size:1.2rem;
+      color:var(--primary);
+      font-weight:900;
+    }
+    .section-icon{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      background:rgba(59,130,246,0.1);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--primary);
+      font-size:1.1rem;
+    }
+    .settings-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+      gap:20px;
+    }
+    .setting-item{
+      background:var(--app-card);
+      border-radius:var(--radius-lg);
+      padding:20px;
+      border:1px solid var(--app-border);
+      transition:var(--transition);
+    }
+    .setting-item:hover{
+      transform:translateY(-2px);
+      box-shadow:var(--shadow-md);
+    }
+    .setting-title{
+      font-size:1rem;
+      font-weight:900;
+      color:var(--app-text);
+      margin-bottom:8px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .setting-desc{
+      font-size:0.9rem;
+      color:var(--app-muted);
+      margin-bottom:16px;
+      line-height:1.5;
+    }
+    .toggle-switch{
+      position:relative;
+      display:inline-block;
+      width:60px;
+      height:30px;
+    }
+    .toggle-switch input{
+      opacity:0;
+      width:0;
+      height:0;
+    }
+    .toggle-slider{
+      position:absolute;
+      cursor:pointer;
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background-color:var(--gray-300);
+      transition:.4s;
+      border-radius:34px;
+    }
+    .toggle-slider:before{
+      position:absolute;
+      content:"";
+      height:22px;
+      width:22px;
+      left:4px;
+      bottom:4px;
+      background-color:white;
+      transition:.4s;
+      border-radius:50%;
+    }
+    .toggle-switch input:checked + .toggle-slider{
+      background-color:var(--success);
+    }
+    .toggle-switch input:checked + .toggle-slider:before{
+      transform:translateX(30px);
+    }
+
+    /* Backup Section */
+    .backup-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    /* System Info */
+    .system-info-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:16px;
+      margin-top:16px;
+    }
+    .info-item{
+      background:var(--app-card-2);
+      border-radius:12px;
+      padding:16px;
+      border:1px solid var(--app-border);
+    }
+    .info-label{
+      font-size:0.85rem;
+      color:var(--app-muted);
+      font-weight:900;
+      margin-bottom:4px;
+    }
+    .info-value{
+      font-size:1rem;
+      font-weight:900;
+      color:var(--app-text);
+    }
+
+    /* Perfil Section */
+    .profile-form{
+      max-width:500px;
+      margin:0 auto;
+    }
+
+    @media (max-width: 992px){
+      .menu-btn{display:inline-flex;align-items:center;justify-content:center}
+      .main{margin-left:0}
+      .sidebar{transform:translateX(-105%)}
+      .sidebar.show{transform:translateX(0)}
+      .filters{grid-template-columns:1fr}
+      .settings-grid{grid-template-columns:1fr}
+      .system-info-grid{grid-template-columns:repeat(2, minmax(0,1fr))}
+    }
+    @media (max-width: 640px){
+      .header{flex-wrap:wrap;align-items:flex-start}
+      .header-right{width:100%;justify-content:space-between}
+      .profile{flex:1;min-width:0}
+      .btn{width:100%}
+      .filter-actions{justify-content:stretch}
+      .backup-actions{flex-direction:column}
+      .system-info-grid{grid-template-columns:1fr}
+    }
+  
+    /* ===== MELHORIAS RESPONSIVAS (EXTRAS) ===== */
+    :root{
+      --fs-h1: clamp(1.35rem, 3.2vw, 1.7rem);
+      --fs-h2: clamp(1.05rem, 2.2vw, 1.25rem);
+      --fs-body: clamp(.95rem, 1.2vw, 1rem);
+    }
+    body{ font-size: var(--fs-body); min-height: 100svh; }
+    .page-head h1{ font-size: var(--fs-h1); }
+    .title-wrap h2{ font-size: var(--fs-h2); }
+    .header{
+      padding-top: calc(14px + env(safe-area-inset-top));
+      padding-left: calc(18px + env(safe-area-inset-left));
+      padding-right: calc(18px + env(safe-area-inset-right));
+    }
+    .twrap{ -webkit-overflow-scrolling: touch; }
+    @media (max-width: 420px){
+      .logout{ width: 100%; justify-content:center; }
+      .actions-top .btn{ width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce){
+      *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <div class="dashboard">
+    <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+      <div class="brand">
+        <i class="fas fa-shopping-cart"></i>
+        <h2>Compra<span>+</span></h2>
+      </div>
+
+     <nav class="nav">
+        <!-- Menu será gerado dinamicamente -->
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="title-wrap">
+            <h2>Configurações</h2>
+            <p id="rtInfo">Configure o sistema e visualize informações</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="profile" id="userProfile" title="Perfil do usuário">
+            <div class="avatar" id="userAvatar">A</div>
+            <div class="pinfo">
+              <h4 id="userName">Carregando...</h4>
+              <p id="userRole">—</p>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary" id="themeToggleBtn" title="Alternar tema">
+            <i class="fas fa-moon" id="themeIcon"></i>
+            <span id="themeText">Escuro</span>
+          </button>
+
+          <button class="logout" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="page-head">
+          <div>
+            <h1>Configurações do Sistema</h1>
+            <p>Gerencie as configurações e preferências do Compra+</p>
+          </div>
+
+          <div class="actions-top">
+            <button class="btn btn-secondary" id="refreshBtn"><i class="fas fa-rotate"></i> Atualizar</button>
+            <button class="btn btn-primary" id="saveAllBtn"><i class="fas fa-save"></i> Salvar Tudo</button>
+          </div>
+        </div>
+
+        <!-- Seção: Configurações Gerais -->
+        <div class="settings-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-sliders-h"></i>
+            </div>
+            <h3>Configurações Gerais</h3>
+          </div>
+
+          <div class="settings-grid">
+            <div class="setting-item">
+              <div class="setting-title">
+                <i class="fas fa-bell"></i> Notificações no Sistema
+              </div>
+              <div class="setting-desc">
+                Mostrar notificações no sistema sobre novos pedidos e atualizações
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notificacoesSistema" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-title">
+                <i class="fas fa-file-pdf"></i> PDF Automático
+              </div>
+              <div class="setting-desc">
+                Gerar PDF automaticamente ao aprovar pedidos
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="pdfAuto" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-title">
+                <i class="fas fa-history"></i> Histórico Detalhado
+              </div>
+              <div class="setting-desc">
+                Manter histórico detalhado de todas as alterações
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="historicoDetalhado" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-title">
+                <i class="fas fa-sync"></i> Atualização Automática
+              </div>
+              <div class="setting-desc">
+                Atualizar dados automaticamente a cada 30 segundos
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="autoRefresh" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção: Configurações de Perfil -->
+        <div class="settings-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-user-cog"></i>
+            </div>
+            <h3>Configurações de Perfil</h3>
+          </div>
+
+          <div class="card">
+            <div class="profile-form">
+              <div class="filters">
+                <div class="fg">
+                  <label for="perfilNome">Nome</label>
+                  <input class="input" id="perfilNome" placeholder="Seu nome completo" />
+                </div>
+                <div class="fg">
+                  <label for="perfilEmail">Email</label>
+                  <input class="input" id="perfilEmail" type="email" placeholder="seu@email.com" />
+                </div>
+                <div class="fg">
+                  <label for="perfilSenhaAtual">Senha Atual</label>
+                  <input class="input" id="perfilSenhaAtual" type="password" placeholder="••••••••" />
+                </div>
+                <div class="fg">
+                  <label for="perfilNovaSenha">Nova Senha</label>
+                  <input class="input" id="perfilNovaSenha" type="password" placeholder="••••••••" />
+                </div>
+                <div class="fg">
+                  <label for="perfilConfirmarSenha">Confirmar Nova Senha</label>
+                  <input class="input" id="perfilConfirmarSenha" type="password" placeholder="••••••••" />
+                </div>
+              </div>
+              <div class="filter-actions">
+                <button class="btn btn-primary" id="salvarPerfilBtn">
+                  <i class="fas fa-save"></i> Atualizar Perfil
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção: Backup e Restauração -->
+        <div class="settings-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3>Backup e Restauração</h3>
+          </div>
+
+          <div class="card">
+            <div style="padding:20px">
+              <div class="setting-title">
+                <i class="fas fa-shield-alt"></i> Segurança de Dados
+              </div>
+              <div class="setting-desc">
+                Faça backup dos dados do sistema regularmente para evitar perda de informações.
+              </div>
+              
+              <div class="backup-actions">
+                <button class="btn btn-success" id="backupBtn">
+                  <i class="fas fa-download"></i> Fazer Backup
+                </button>
+                <button class="btn btn-warning" id="restoreBtn">
+                  <i class="fas fa-upload"></i> Restaurar Backup
+                </button>
+                <button class="btn btn-info" id="backupManualBtn">
+                  <i class="fas fa-file-export"></i> Exportar Manual
+                </button>
+              </div>
+
+              <div style="margin-top:20px">
+                <div class="setting-title">
+                  <i class="fas fa-history"></i> Últimos Backups
+                </div>
+                <div class="twrap" style="max-height:200px; margin:12px 0">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Data</th>
+                        <th>Tamanho</th>
+                        <th>Tipo</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody id="backupsList"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção: Informações do Sistema -->
+        <div class="settings-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <h3>Informações do Sistema</h3>
+          </div>
+
+          <div class="card">
+            <div style="padding:20px">
+              <div class="system-info-grid">
+                <div class="info-item">
+                  <div class="info-label">Versão do Sistema</div>
+                  <div class="info-value" id="sysVersao">Carregando...</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Status do Banco</div>
+                  <div class="info-value" id="sysBanco">Carregando...</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Usuários Ativos</div>
+                  <div class="info-value" id="sysUsuarios">0</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Última Atualização</div>
+                  <div class="info-value" id="sysAtualizacao">—</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Licitações</div>
+                  <div class="info-value" id="sysLicitacoes">0</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Fornecedores</div>
+                  <div class="info-value" id="sysFornecedores">0</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Pedidos</div>
+                  <div class="info-value" id="sysPedidos">0</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Tamanho do Banco</div>
+                  <div class="info-value" id="sysTamanho">—</div>
+                </div>
+              </div>
+
+              <div style="margin-top:20px; padding:16px; background:var(--app-card-2); border-radius:12px;">
+                <div class="setting-title">
+                  <i class="fas fa-server"></i> Saúde do Sistema
+                </div>
+                <div style="margin-top:12px">
+                  <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px">
+                    <div style="flex:1; height:8px; background:var(--app-border); border-radius:4px; overflow:hidden">
+                      <div id="healthBar" style="height:100%; width:85%; background:var(--success); border-radius:4px"></div>
+                    </div>
+                    <span id="healthPercent" style="font-weight:900">85%</span>
+                  </div>
+                  <div id="healthStatus" style="font-size:0.9rem; color:var(--app-muted)">
+                    Sistema operando normalmente
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção: Logs do Sistema -->
+        <div class="settings-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3>Logs do Sistema</h3>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3><i class="fas fa-history"></i> Últimas Atividades</h3>
+              <button class="btn btn-sm btn-secondary" id="limparLogsBtn">
+                <i class="fas fa-broom"></i> Limpar Logs
+              </button>
+            </div>
+            <div class="twrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data/Hora</th>
+                    <th>Usuário</th>
+                    <th>Ação</th>
+                    <th>Detalhes</th>
+                    <th>IP</th>
+                  </tr>
+                </thead>
+                <tbody id="logsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+  // =========================
+  // BASE URL (file:// e servidor)
+  // =========================
+  const DEFAULT_BACKEND = "http://127.0.0.1:5000";
+  const isFile = window.location.protocol === "file:";
+  const BASE_URL = isFile ? DEFAULT_BACKEND : window.location.origin;
+
+  function apiUrl(path){
+    if(!path) return BASE_URL;
+    if (/^https?:\/\//i.test(path)) return path;
+    return path.startsWith('/') ? (BASE_URL + path) : (BASE_URL + '/' + path);
+  }
+  function pageUrl(file){ return isFile ? file : ('/' + file); }
+
+  // =========================
+  // API
+  // =========================
+  const API = {
+    authCheck: '/api/auth/check',
+    health: '/api/health',
+    stats: '/api/stats',
+    version: '/api/version',
+    backupList: '/api/backup/list',
+    backupDb: '/api/backup/db',
+    backupDownload: '/api/backup/download',   // + /<filename>
+    backupRestore: '/api/backup/restore',
+    events: '/api/events'
+  };
+
+  // =========================
+  // Token
+  // =========================
+  function getToken(){
+    return localStorage.getItem('access_token') ||
+           localStorage.getItem('compraPlus_access_token') ||
+           localStorage.getItem('compraPlus_token_v1') || '';
+  }
+
+  // =========================
+  // Toast
+  // =========================
+  function toast(msg, type='info'){
+    const el = document.createElement('div');
+    el.className = 'toast';
+    let icon='fa-info-circle', color='var(--primary)';
+    if(type==='success'){ icon='fa-check-circle'; color='var(--success)'; }
+    if(type==='error'){ icon='fa-exclamation-circle'; color='var(--danger)'; }
+    if(type==='warning'){ icon='fa-exclamation-triangle'; color='var(--warning)'; }
+    el.innerHTML = `<i class="fas ${icon}"></i><div style="font-weight:800">${msg}</div>`;
+    el.style.borderLeftColor = color;
+    el.querySelector('i').style.color = color;
+    document.body.appendChild(el);
+    requestAnimationFrame(()=> el.classList.add('show'));
+    setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=> el.remove(), 220); }, 3200);
+  }
+
+  // =========================
+  // API helpers
+  // =========================
+  async function apiGet(url){
+    const token = getToken();
+    const headers = { 'Accept':'application/json', 'Cache-Control':'no-cache' };
+    if(token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(apiUrl(url), { headers });
+    const data = await res.json().catch(()=> ({}));
+    if(!res.ok){
+      const msg = data?.message || `Erro HTTP ${res.status}`;
+      if(res.status === 401){
+        toast('Sessão expirada. Faça login novamente.', 'error');
+        setTimeout(()=> window.location.href = isFile ? 'index_corrigido.html' : '/', 1200);
+      }
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  async function apiFetch(url, options = {}){
+    const token = getToken();
+    const headers = options.headers ? {...options.headers} : {};
+    if(token) headers['Authorization'] = `Bearer ${token}`;
+    options.headers = headers;
+    return fetch(apiUrl(url), options);
+  }
+
+  async function downloadWithAuth(url, fallbackFilename){
+    try{
+      const res = await apiFetch(url, { method:'GET' });
+      if(!res.ok){
+        const data = await res.json().catch(()=> ({}));
+        throw new Error(data?.message || `Erro HTTP ${res.status}`);
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') || '';
+      let filename = fallbackFilename || 'backup.db';
+      const m = /filename\*=UTF-8''([^;]+)|filename=\"?([^\"]+)\"?/i.exec(cd);
+      if(m) filename = decodeURIComponent(m[1] || m[2] || filename);
+
+      const urlObj = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlObj;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(urlObj);
+      return true;
+    }catch(err){
+      console.error(err);
+      toast(err.message || 'Erro ao baixar backup', 'error');
+      return false;
+    }
+  }
+
+  // =========================
+  // Utils
+  // =========================
+  function formatDate(dateStr){
+    if(!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  }
+  function formatBytes(bytes, decimals = 2){
+    const n = Number(bytes || 0);
+    if(n === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes','KB','MB','GB'];
+    const i = Math.floor(Math.log(n)/Math.log(k));
+    return parseFloat((n/Math.pow(k,i)).toFixed(Math.max(0, decimals))) + ' ' + sizes[i];
+  }
+
+  // =========================
+  // Theme
+  // =========================
+  const htmlEl = document.documentElement;
+  const themeIcon = document.getElementById('themeIcon');
+  const themeText = document.getElementById('themeText');
+  function applyTheme(theme){
+    htmlEl.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    if(theme === 'dark'){
+      if(themeIcon) themeIcon.className = 'fas fa-sun';
+      if(themeText) themeText.textContent = 'Claro';
+    } else {
+      if(themeIcon) themeIcon.className = 'fas fa-moon';
+      if(themeText) themeText.textContent = 'Escuro';
+    }
+  }
+
+  // =========================
+  // Sidebar (NAV)
+  // =========================
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const menuBtn = document.getElementById('menuBtn');
+
+  function lockBody(lock){
+    document.body.style.overflow = lock ? 'hidden' : '';
+    document.body.style.touchAction = lock ? 'none' : '';
+  }
+  function openSidebar(){
+    sidebar.classList.add('show');
+    overlay.classList.add('show');
+    menuBtn.setAttribute('aria-expanded','true');
+    lockBody(true);
+  }
+  function closeSidebar(){
+    sidebar.classList.remove('show');
+    overlay.classList.remove('show');
+    menuBtn.setAttribute('aria-expanded','false');
+    lockBody(false);
+  }
+
+  // =========================
+  // Menu dinâmico
+  // =========================
+  function generateMenu(allowedPages){
+    const nav = document.querySelector('.nav');
+    if(!nav) return;
+    const menuItems = {
+      dashboard: { icon:'fa-tachometer-alt', label:'Dashboard', href: pageUrl('dashboard.html') },
+      pedidos: { icon:'fa-clipboard-list', label:'Pedidos', href: pageUrl('pedidos.html') },
+      licitacoes: { icon:'fa-gavel', label:'Licitações', href: pageUrl('licitacoes.html') },
+      fornecedores: { icon:'fa-truck', label:'Fornecedores', href: pageUrl('fornecedores.html') },
+      relatorios: { icon:'fa-chart-bar', label:'Relatórios', href: pageUrl('relatorios.html') },
+      configuracoes: { icon:'fa-cog', label:'Configurações', href: pageUrl('configuracoes.html') },
+      usuarios: { icon:'fa-users', label:'Usuários', href: pageUrl('usuarios.html') },
+    };
+
+    nav.innerHTML = '';
+    const pages = Array.isArray(allowedPages) ? allowedPages.slice() : [];
+    if(!pages.includes('dashboard')) pages.unshift('dashboard');
+
+    const current = (window.location.pathname.split('/').pop() || 'dashboard.html').toLowerCase();
+
+    for(const key of pages){
+      const item = menuItems[key];
+      if(!item) continue;
+      const a = document.createElement('a');
+      a.href = item.href;
+      a.innerHTML = `<i class="fas ${item.icon}"></i><span>${item.label}</span>`;
+      if((item.href||'').toLowerCase().includes(current)) a.classList.add('active');
+      a.addEventListener('click', ()=> {
+        if(window.matchMedia('(max-width: 992px)').matches) closeSidebar();
+      });
+      nav.appendChild(a);
+    }
+  }
+
+  // =========================
+  // Settings persistence (localStorage)
+  // =========================
+  function loadSettings(){
+    document.getElementById('notificacoesSistema').checked = localStorage.getItem('compraplus_notificacoes') !== 'false';
+    document.getElementById('pdfAuto').checked = localStorage.getItem('compraplus_pdf_auto') !== 'false';
+    document.getElementById('historicoDetalhado').checked = localStorage.getItem('compraplus_historico') !== 'false';
+    document.getElementById('autoRefresh').checked = localStorage.getItem('compraplus_auto_refresh') !== 'false';
+  }
+  function saveSettings(){
+    localStorage.setItem('compraplus_notificacoes', document.getElementById('notificacoesSistema').checked);
+    localStorage.setItem('compraplus_pdf_auto', document.getElementById('pdfAuto').checked);
+    localStorage.setItem('compraplus_historico', document.getElementById('historicoDetalhado').checked);
+    localStorage.setItem('compraplus_auto_refresh', document.getElementById('autoRefresh').checked);
+    toast('Configurações salvas com sucesso!', 'success');
+  }
+
+  // =========================
+  // User/profile
+  // =========================
+  let CURRENT_USER = { name:'Usuário', role:'—', email:'' };
+
+  async function loadUserAndMenu(){
+    try{
+      const data = await apiGet(API.authCheck);
+      if(data?.authenticated && data.user){
+        CURRENT_USER = {
+          name: data.user.name || 'Usuário',
+          role: data.user.role || '—',
+          email: data.user.email || '',
+          allowed_pages: data.user.allowed_pages || []
+        };
+
+        document.getElementById('userName').textContent = CURRENT_USER.name;
+        document.getElementById('userRole').textContent = 'Perfil: ' + CURRENT_USER.role;
+        document.getElementById('userAvatar').textContent = String(CURRENT_USER.name.trim().charAt(0)).toUpperCase();
+
+        // Preenche form de perfil
+        document.getElementById('perfilNome').value = CURRENT_USER.name;
+        document.getElementById('perfilEmail').value = CURRENT_USER.email;
+
+        generateMenu(CURRENT_USER.allowed_pages);
+        return;
+      }
+      generateMenu(['dashboard']);
+      toast('Não autenticado. Faça login.', 'warning');
+      setTimeout(()=> window.location.href = isFile ? 'index_corrigido.html' : '/', 1200);
+    }catch(e){
+      console.error(e);
+      generateMenu(['dashboard']);
+    }
+  }
+
+  async function updateProfile(){
+    const nome = (document.getElementById('perfilNome').value || '').trim();
+    const email = (document.getElementById('perfilEmail').value || '').trim();
+    const senhaAtual = (document.getElementById('perfilSenhaAtual').value || '').trim();
+    const novaSenha = (document.getElementById('perfilNovaSenha').value || '').trim();
+    const confirmarSenha = (document.getElementById('perfilConfirmarSenha').value || '').trim();
+
+    if(!nome){ toast('Nome é obrigatório', 'warning'); return; }
+    if(novaSenha && novaSenha !== confirmarSenha){ toast('As novas senhas não coincidem', 'warning'); return; }
+    if(novaSenha && !senhaAtual){ toast('Para alterar a senha, informe a senha atual', 'warning'); return; }
+
+    // aqui pode virar API futuramente; por enquanto mantém simulação + UI
+    CURRENT_USER.name = nome;
+    CURRENT_USER.email = email;
+
+    document.getElementById('userName').textContent = nome;
+    document.getElementById('userAvatar').textContent = String(nome.charAt(0)).toUpperCase();
+
+    localStorage.setItem('compraplus_user_name', nome);
+
+    toast(novaSenha ? 'Perfil e senha atualizados com sucesso!' : 'Perfil atualizado com sucesso!', 'success');
+
+    document.getElementById('perfilSenhaAtual').value = '';
+    document.getElementById('perfilNovaSenha').value = '';
+    document.getElementById('perfilConfirmarSenha').value = '';
+  }
+
+  // =========================
+  // System info
+  // =========================
+  async function loadSystemInfo(){
+    try{
+      const versionData = await apiGet(API.version);
+      if(versionData?.success){
+        document.getElementById('sysVersao').textContent = versionData.build || 'Desconhecida';
+        document.getElementById('sysAtualizacao').textContent = formatDate(versionData.timestamp);
+      }
+
+      const healthData = await apiGet(API.health);
+      if(healthData?.success){
+        document.getElementById('sysBanco').innerHTML = `<span class="pill st-ok">${healthData.status}</span>`;
+
+        const tables = healthData.tables || {};
+        const tableCount = Object.keys(tables).length;
+        const okTables = Object.values(tables).filter(v => v === 'OK').length;
+        let score = 85;
+        if(tableCount > 0) score = Math.round((okTables / tableCount) * 100);
+
+        document.getElementById('healthBar').style.width = score + '%';
+        document.getElementById('healthPercent').textContent = score + '%';
+
+        if(score >= 80){
+          document.getElementById('healthBar').style.background = 'var(--success)';
+          document.getElementById('healthStatus').textContent = 'Sistema operando normalmente';
+        }else if(score >= 60){
+          document.getElementById('healthBar').style.background = 'var(--warning)';
+          document.getElementById('healthStatus').textContent = 'Sistema com alertas';
+        }else{
+          document.getElementById('healthBar').style.background = 'var(--danger)';
+          document.getElementById('healthStatus').textContent = 'Sistema com problemas';
+        }
+      }
+
+      const statsData = await apiGet(API.stats);
+      if(statsData?.success){
+        const s = statsData.stats || {};
+        document.getElementById('sysLicitacoes').textContent = s.licitacoes || 0;
+        document.getElementById('sysFornecedores').textContent = s.fornecedores || 0;
+        document.getElementById('sysPedidos').textContent = s.pedidos || 0;
+        document.getElementById('sysUsuarios').textContent = s.usuarios || 0;
+
+        const tamanhoBase = 1.5; // MB base
+        const tamanhoExtra = (Number(s.pedidos||0) * 0.001) + (Number(s.fornecedores||0) * 0.0005);
+        document.getElementById('sysTamanho').textContent = formatBytes((tamanhoBase + tamanhoExtra) * 1024 * 1024);
+      }
+    }catch(err){
+      console.error(err);
+      document.getElementById('sysVersao').textContent = 'Erro ao carregar';
+      document.getElementById('sysBanco').innerHTML = `<span class="pill st-bad">Offline</span>`;
+    }
+  }
+
+  // =========================
+  // Logs (simulado)
+  // =========================
+  function loadSystemLogs(){
+    const logs = [
+      { data:new Date().toISOString(), usuario:CURRENT_USER.name, acao:'Acesso à página', detalhes:'Acessou Configurações do Sistema', ip:'192.168.1.100' },
+      { data:new Date(Date.now()-3600000).toISOString(), usuario:'Gerente', acao:'Atualização de pedido', detalhes:'Pedido #45 aprovado', ip:'192.168.1.101' },
+      { data:new Date(Date.now()-7200000).toISOString(), usuario:'Comprador', acao:'Criação de pedido', detalhes:'Novo pedido criado #46', ip:'192.168.1.102' },
+      { data:new Date(Date.now()-10800000).toISOString(), usuario:'Administrador', acao:'Configuração alterada', detalhes:'Configurações gerais atualizadas', ip:'192.168.1.100' },
+      { data:new Date(Date.now()-14400000).toISOString(), usuario:'Sistema', acao:'Backup automático', detalhes:'Backup realizado com sucesso', ip:'127.0.0.1' },
+    ];
+
+    const tbody = document.getElementById('logsTable');
+    tbody.innerHTML = '';
+    logs.forEach(l => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${formatDate(l.data)}</td>
+        <td style="font-weight:900">${l.usuario}</td>
+        <td><span class="pill st-ok">${l.acao}</span></td>
+        <td>${l.detalhes}</td>
+        <td style="font-size:.85rem;color:var(--app-muted)">${l.ip}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // =========================
+  // Backup list + actions
+  // =========================
+  async function loadBackupList(){
+    const tbody = document.getElementById('backupsList');
+    if(!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:18px;color:var(--app-muted);text-align:center">
+      <i class="fas fa-spinner fa-spin"></i> Carregando...
+    </td></tr>`;
+
+    try{
+      const data = await apiGet(API.backupList);
+      const backups = data?.backups || [];
+
+      if(!backups.length){
+        tbody.innerHTML = `<tr><td colspan="4" style="padding:18px;color:var(--app-muted);text-align:center">
+          <i class="fas fa-inbox"></i> Nenhum backup disponível.
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      backups.slice(0,30).forEach(b=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${formatDate(b.modified)}</td>
+          <td>${formatBytes(b.size || 0)}</td>
+          <td><span class="pill st-ok">Completo</span></td>
+          <td>
+            <button class="btn btn-sm btn-secondary" data-action="downloadBackup" data-filename="${b.name}" title="Baixar">
+              <i class="fas fa-download"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }catch(err){
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="4" style="padding:18px;color:var(--danger);text-align:center">
+        <i class="fas fa-exclamation-circle"></i> Erro ao carregar backups.
+      </td></tr>`;
+    }
+  }
+
+  async function downloadDatabaseBackup(){
+    toast('Gerando backup do banco...', 'info');
+    const ok = await downloadWithAuth(API.backupDb, `compra_plus_backup_${new Date().toISOString().split('T')[0]}.db`);
+    if(ok){
+      toast('Backup do banco exportado com sucesso!', 'success');
+      await loadBackupList();
+    }
+  }
+
+  // Restore upload
+  function pickAndRestore(){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.db';
+    input.onchange = async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      if(!file.name.toLowerCase().endsWith('.db')){
+        toast('Envie um arquivo .db (SQLite)', 'warning');
+        return;
+      }
+      if(!confirm('Restaurar este backup vai substituir o banco atual. Deseja continuar?')) return;
+
+      try{
+        toast('Enviando backup para restauração...', 'info');
+        const fd = new FormData();
+        fd.append('file', file);
+
+        const res = await apiFetch(API.backupRestore, { method:'POST', body: fd });
+        const data = await res.json().catch(()=> ({}));
+
+        if(!res.ok || !data?.success){
+          throw new Error(data?.message || `Erro HTTP ${res.status}`);
+        }
+
+        toast('Banco restaurado com sucesso!', 'success');
+        await loadSystemInfo();
+        await loadBackupList();
+      }catch(err){
+        console.error(err);
+        toast(err.message || 'Erro ao restaurar backup', 'error');
+      }
+    };
+    input.click();
+  }
+
+  // =========================
+  // Boot
+  // =========================
+  document.addEventListener('DOMContentLoaded', async ()=>{
+    // Theme init
+    applyTheme(localStorage.getItem('theme') || 'light');
+    document.getElementById('themeToggleBtn')?.addEventListener('click', ()=>{
+      const t = htmlEl.getAttribute('data-theme') || 'light';
+      applyTheme(t === 'light' ? 'dark' : 'light');
+    });
+
+    // Nav toggle
+    menuBtn?.addEventListener('click', ()=> sidebar.classList.contains('show') ? closeSidebar() : openSidebar());
+    overlay?.addEventListener('click', closeSidebar);
+
+    // ESC closes sidebar
+    document.addEventListener('keydown', (e)=>{
+      if(e.key !== 'Escape') return;
+      if(sidebar.classList.contains('show')) closeSidebar();
+    });
+
+    // Logout
+    document.getElementById('logoutBtn')?.addEventListener('click', ()=>{
+      if(confirm('Deseja sair do sistema?')){
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('compraPlus_token_v1');
+        localStorage.removeItem('compraPlus_access_token');
+        localStorage.removeItem('user');
+        toast('Saindo do sistema...', 'info');
+        setTimeout(()=> window.location.href = isFile ? 'index_corrigido.html' : '/', 500);
+      }
+    });
+
+    // top actions
+    document.getElementById('refreshBtn')?.addEventListener('click', async ()=>{
+      toast('Atualizando informações...', 'info');
+      await loadSystemInfo();
+      loadSystemLogs();
+      await loadBackupList();
+    });
+    document.getElementById('saveAllBtn')?.addEventListener('click', saveSettings);
+    document.getElementById('salvarPerfilBtn')?.addEventListener('click', updateProfile);
+    document.getElementById('backupBtn')?.addEventListener('click', downloadDatabaseBackup);
+    document.getElementById('backupManualBtn')?.addEventListener('click', downloadDatabaseBackup);
+    document.getElementById('restoreBtn')?.addEventListener('click', pickAndRestore);
+
+    document.getElementById('limparLogsBtn')?.addEventListener('click', ()=>{
+      if(confirm('Limpar todos os logs do sistema?')){
+        document.getElementById('logsTable').innerHTML = `
+          <tr><td colspan="5" style="padding:18px;color:var(--app-muted);text-align:center">
+            <i class="fas fa-inbox"></i> Nenhum log disponível.
+          </td></tr>
+        `;
+        toast('Logs limpos!', 'success');
+      }
+    });
+
+    document.getElementById('backupsList')?.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      const action = btn.dataset.action;
+      const filename = btn.dataset.filename;
+      if(action === 'downloadBackup' && filename){
+        toast('Baixando backup...', 'info');
+        await downloadWithAuth(`${API.backupDownload}/${encodeURIComponent(filename)}`, filename);
+      }
+    });
+
+    // Load everything
+    await loadUserAndMenu();
+    loadSettings();
+    await loadSystemInfo();
+    loadSystemLogs();
+    await loadBackupList();
+
+    toast('Configurações carregadas!', 'success');
+  });
+</script>
+</body>
+</html>

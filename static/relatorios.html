@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Relatórios | Compra+</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+    body{background:var(--app-bg);color:var(--app-text);min-height:100vh;overflow-x:hidden}
+
+    :root{
+      --primary:#1e40af; --primary-light:#3b82f6; --primary-dark:#1e3a8a;
+      --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#0ea5e9;
+
+      --gray-50:#f8fafc; --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+      --gray-400:#94a3b8; --gray-500:#64748b; --gray-600:#475569; --gray-700:#334155; --gray-800:#1e293b;
+
+      --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+      --shadow-md:0 8px 20px rgba(0,0,0,.08);
+      --shadow-lg:0 20px 50px rgba(0,0,0,.15);
+
+      --transition:all .25s ease;
+      --sidebar-w:260px;
+
+      --app-bg:#f8fafc; --app-card:#ffffff; --app-card-2:#f8fafc;
+      --app-text:#1e293b; --app-muted:#64748b; --app-border:#e2e8f0;
+      --app-input:#ffffff; --app-input-border:#e2e8f0;
+      --app-header:#ffffff; --app-profile:#f1f5f9; --app-profile-hover:#e2e8f0;
+      --app-table-head:#ffffff;
+    }
+    html[data-theme="dark"]{
+      --app-bg:#0b1220; --app-card:#0f172a; --app-card-2:#0b1220;
+      --app-text:#e5e7eb; --app-muted:#94a3b8; --app-border:#1f2a3a;
+      --app-input:#0b1220; --app-input-border:#1f2a3a;
+      --app-header:#0f172a; --app-profile:#111c30; --app-profile-hover:#172746;
+      --app-table-head:#0b1220;
+    }
+
+    .dashboard{display:flex;min-height:100vh}
+    .main{flex:1;min-width:0;margin-left:var(--sidebar-w);transition:var(--transition)}
+
+    .sidebar{
+      position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+      background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+      color:#fff;padding:18px 12px;box-shadow:5px 0 18px rgba(0,0,0,.12);
+      z-index:1200;transition:transform .28s ease;overflow-y:auto;
+    }
+    .brand{
+      padding:10px 12px 18px;border-bottom:1px solid rgba(255,255,255,.12);
+      margin-bottom:12px;display:flex;align-items:center;gap:10px;
+    }
+    .brand i{font-size:1.35rem}
+    .brand h2{font-size:1.5rem;letter-spacing:.2px}
+    .brand h2 span{color:#60a5fa}
+
+    .nav{padding:8px 6px}
+    .nav a{
+      display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);
+      color:rgba(255,255,255,.86);text-decoration:none;transition:var(--transition);margin-bottom:6px;
+    }
+    .nav a i{width:20px;text-align:center}
+    .nav a:hover,.nav a.active{background:rgba(255,255,255,.12);color:#fff;transform:translateX(4px)}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:1100}
+    .overlay.show{display:block}
+
+    .header{
+      position:sticky;top:0;z-index:900;background:var(--app-header);
+      box-shadow:var(--shadow-sm);min-height:72px;padding:14px 18px;
+      display:flex;align-items:center;gap:14px;justify-content:space-between;border-bottom:1px solid var(--app-border);
+      flex-wrap:wrap;
+    }
+    .header-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+    .menu-btn{
+      display:none;border:none;background:var(--gray-100);color:var(--primary);
+      width:44px;height:44px;border-radius:12px;cursor:pointer;transition:var(--transition);flex:0 0 auto;
+    }
+    html[data-theme="dark"] .menu-btn{background:#111c30;color:#93c5fd}
+    html[data-theme="dark"] .menu-btn:hover{background:#172746}
+    .menu-btn:hover{background:var(--gray-200)}
+    .title-wrap{flex:1;min-width:0}
+    .title-wrap h2{font-size:1.25rem;color:var(--primary);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .title-wrap p{font-size:.9rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+    .profile{
+      display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--app-profile);
+      border-radius:999px;cursor:pointer;transition:var(--transition);
+      min-width:180px;max-width:340px;border:1px solid var(--app-border);
+      flex:1;
+    }
+    .profile:hover{background:var(--app-profile-hover)}
+    .avatar{
+      width:38px;height:38px;border-radius:999px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-light));
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex:0 0 auto;
+    }
+    .pinfo{flex:1;min-width:0}
+    .pinfo h4{font-size:.92rem;color:var(--app-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+    .pinfo p{font-size:.8rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:11px 16px;border:none;border-radius:var(--radius-lg);cursor:pointer;font-weight:800;
+      transition:var(--transition);text-decoration:none;white-space:nowrap;
+    }
+    .btn:active{transform:scale(.99)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;box-shadow:0 8px 18px rgba(59,130,246,.18)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(59,130,246,.25)}
+    .btn-secondary{background:var(--gray-100);color:var(--gray-700);border:2px solid var(--gray-200)}
+    html[data-theme="dark"] .btn-secondary{background:#111c30;color:#e5e7eb;border-color:var(--app-border)}
+    html[data-theme="dark"] .btn-secondary:hover{background:#172746}
+    .btn-success{background:linear-gradient(135deg,var(--success),#34d399);color:#fff}
+    .btn-warning{background:linear-gradient(135deg,var(--warning),#fbbf24);color:#fff}
+    .btn-danger{background:linear-gradient(135deg,var(--danger),#f87171);color:#fff}
+    .btn-info{background:linear-gradient(135deg,var(--info),#22d3ee);color:#fff}
+    .btn-sm{padding:8px 12px;border-radius:14px;font-size:.9rem}
+
+    .logout{
+      border:none;background:var(--danger);color:#fff;padding:10px 14px;border-radius:999px;cursor:pointer;
+      font-weight:800;display:flex;align-items:center;gap:8px;transition:var(--transition);white-space:nowrap;
+    }
+    .logout:hover{background:#dc2626;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+
+    .content{padding:20px}
+    .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:14px 0 18px;flex-wrap:wrap}
+    .page-head h1{font-size:1.7rem;color:var(--primary);line-height:1.1}
+    .page-head p{color:var(--app-muted);margin-top:8px}
+    .actions-top{display:flex;gap:10px;flex-wrap:wrap;margin-top:5px}
+
+    .card{
+      background:var(--app-card);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-md);
+      overflow:hidden;
+      border:1px solid var(--app-border);
+      margin-bottom:20px;
+    }
+    .card-head{
+      padding:16px;border-bottom:1px solid var(--app-border);
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--app-card);
+    }
+    .card-head h3{display:flex;align-items:center;gap:10px;color:var(--app-text);font-size:1.15rem}
+
+    .filters{
+      padding:16px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+      gap:12px;
+    }
+    .fg{display:flex;flex-direction:column;gap:8px;min-width:0}
+    .fg label{font-weight:900;color:var(--gray-600);font-size:.92rem}
+    html[data-theme="dark"] .fg label{color:var(--app-muted)}
+    .input,.select{
+      width:100%;padding:12px 12px;border:2px solid var(--app-input-border);
+      border-radius:14px;outline:none;transition:var(--transition);
+      background:var(--app-input);color:var(--app-text);
+      font-size:14px;
+    }
+    .input:focus,.select:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+    .filter-actions{padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+    .twrap{
+      margin:16px;border:1px solid var(--app-border);border-radius:16px;overflow:auto;background:var(--app-card);
+      max-height:400px;
+    }
+    table{width:100%;border-collapse:collapse;min-width:600px}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--app-border);text-align:left;vertical-align:middle}
+    th{color:var(--app-muted);font-size:.9rem;font-weight:900;background:var(--app-table-head);position:sticky;top:0}
+
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;font-weight:900;font-size:.85rem;
+      border:1px solid var(--app-border);background:var(--app-card-2);white-space:nowrap;
+    }
+    .st-ok{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+    .st-warn{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .st-bad{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    html[data-theme="dark"] .st-ok{background:rgba(16,185,129,.14);color:#a7f3d0;border-color:rgba(16,185,129,.22)}
+    html[data-theme="dark"] .st-warn{background:rgba(245,158,11,.14);color:#fde68a;border-color:rgba(245,158,11,.22)}
+    html[data-theme="dark"] .st-bad{background:rgba(239,68,68,.14);color:#fecaca;border-color:rgba(239,68,68,.22)}
+
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    .toast{
+      position:fixed;top:18px;right:18px;z-index:3000;
+      background:var(--app-card);border-radius:16px;box-shadow:var(--shadow-lg);
+      border-left:5px solid var(--primary);padding:12px 14px;
+      display:flex;gap:10px;align-items:center;
+      max-width:min(420px, calc(100vw - 36px));
+      transform:translateX(140%);transition:transform .25s ease;color:var(--app-text);
+    }
+    .toast.show{transform:translateX(0)}
+    .toast i{color:var(--primary)}
+
+    /* Stats Cards */
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:16px;
+      margin-bottom:24px;
+    }
+    .stat-card{
+      background:var(--app-card);
+      border-radius:var(--radius-lg);
+      padding:20px;
+      border:1px solid var(--app-border);
+      box-shadow:var(--shadow-sm);
+      transition:var(--transition);
+    }
+    .stat-card:hover{
+      transform:translateY(-2px);
+      box-shadow:var(--shadow-md);
+    }
+    .stat-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .stat-title{
+      font-size:0.9rem;
+      color:var(--app-muted);
+      font-weight:900;
+    }
+    .stat-icon{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.2rem;
+    }
+    .stat-icon.primary{background:rgba(59,130,246,0.1);color:var(--primary)}
+    .stat-icon.success{background:rgba(16,185,129,0.1);color:var(--success)}
+    .stat-icon.warning{background:rgba(245,158,11,0.1);color:var(--warning)}
+    .stat-icon.danger{background:rgba(239,68,68,0.1);color:var(--danger)}
+    .stat-value{
+      font-size:1.8rem;
+      font-weight:900;
+      color:var(--app-text);
+      margin-bottom:4px;
+      word-break:break-all;
+    }
+    .stat-change{
+      font-size:0.85rem;
+      font-weight:900;
+    }
+    .stat-change.positive{color:var(--success)}
+    .stat-change.negative{color:var(--danger)}
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .filters{grid-template-columns:repeat(2, minmax(0,1fr))}
+    }
+    
+    @media (max-width: 992px) {
+      .menu-btn{display:flex}
+      .main{margin-left:0}
+      .sidebar{transform:translateX(-105%);width:280px}
+      .sidebar.show{transform:translateX(0)}
+      .content{padding:15px}
+      .header{padding:12px 15px}
+      .page-head h1{font-size:1.5rem}
+      .page-head{flex-direction:column;align-items:flex-start;gap:10px}
+      .actions-top{width:100%;justify-content:flex-start}
+    }
+    
+    @media (max-width: 768px) {
+      .header{flex-direction:column;align-items:stretch;gap:12px}
+      .header-left{width:100%}
+      .header-right{width:100%;justify-content:space-between;gap:8px}
+      .profile{min-width:0;flex:1}
+      .logout{padding:10px 12px;font-size:0.9rem}
+      .btn-primary, .btn-secondary{flex:1;min-width:0}
+      .filter-actions{flex-direction:column}
+      .filter-actions .btn{width:100%}
+      .stats-grid{grid-template-columns:repeat(2, minmax(0,1fr))}
+      .card-head{flex-direction:column;align-items:flex-start;gap:10px}
+      .card-head h3{font-size:1.1rem}
+      .filters{padding:15px}
+      .stat-value{font-size:1.6rem}
+      .twrap{margin:10px}
+      table th, table td{padding:10px 8px;font-size:0.9rem}
+    }
+    
+    @media (max-width: 640px) {
+      .stats-grid{grid-template-columns:1fr}
+      .filters{grid-template-columns:1fr;gap:15px}
+      .fg label{font-size:0.9rem}
+      .input, .select{padding:10px 12px;font-size:16px}
+      .content{padding:12px}
+      .page-head h1{font-size:1.4rem}
+      .btn{width:100%;justify-content:center}
+      .header-right{flex-direction:column;align-items:stretch}
+      .profile{max-width:100%}
+      .menu-btn{width:40px;height:40px}
+      .nav a{padding:10px 12px;font-size:0.95rem}
+      .brand h2{font-size:1.3rem}
+      .stat-card{padding:16px}
+      .stat-value{font-size:1.5rem}
+      .stat-title{font-size:0.85rem}
+      .stat-icon{width:36px;height:36px;font-size:1rem}
+    }
+    
+    @media (max-width: 480px) {
+      .header{padding:10px 12px}
+      .content{padding:10px}
+      .card-head{padding:14px}
+      .card-head h3{font-size:1rem}
+      .filters{padding:12px}
+      .twrap{margin:8px;border-radius:12px}
+      table th, table td{padding:8px 6px;font-size:0.85rem}
+      .pill{font-size:0.8rem;padding:6px 8px}
+      .btn-sm{padding:6px 10px;font-size:0.85rem}
+      .page-head h1{font-size:1.3rem}
+      .title-wrap h2{font-size:1.1rem}
+      .title-wrap p{font-size:0.85rem}
+      .stat-value{font-size:1.4rem}
+      .stat-card{padding:14px}
+      .logout{font-size:0.85rem;padding:8px 10px}
+      .toast{top:10px;right:10px;left:10px;max-width:none;padding:10px 12px}
+    }
+    
+    @media (max-width: 360px) {
+      .sidebar{width:100%;max-width:300px}
+      .header{min-height:64px}
+      .page-head h1{font-size:1.2rem}
+      .stat-card{padding:12px}
+      .stat-value{font-size:1.3rem}
+      .btn{padding:10px 14px;font-size:0.9rem}
+      .nav a{padding:8px 10px;margin-bottom:4px}
+      .brand{padding:8px 10px 14px}
+    }
+    
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+      .btn, .logout, .nav a, .menu-btn{padding:12px 16px;min-height:44px}
+      .btn-sm{min-height:36px}
+      .input, .select{min-height:44px}
+      .nav a{margin-bottom:8px}
+      .menu-btn{width:44px;height:44px}
+      .btn:hover, .logout:hover, .nav a:hover, .menu-btn:hover{transform:none}
+      .stat-card:hover{transform:none;box-shadow:var(--shadow-sm)}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <div class="dashboard">
+    <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+      <div class="brand">
+        <i class="fas fa-shopping-cart"></i>
+        <h2>Compra<span>+</span></h2>
+      </div>
+      <nav class="nav">
+        <!-- Menu será gerado dinamicamente -->
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="title-wrap">
+            <h2>Relatórios</h2>
+            <p id="rtInfo">Estatísticas e relatórios do sistema</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="profile" id="userProfile" title="Perfil do usuário">
+            <div class="avatar" id="userAvatar">A</div>
+            <div class="pinfo">
+              <h4 id="userName">Carregando...</h4>
+              <p id="userRole">—</p>
+            </div>
+          </div>
+          <button class="btn btn-secondary" id="themeToggleBtn" title="Alternar tema">
+            <i class="fas fa-moon" id="themeIcon"></i>
+            <span id="themeText">Escuro</span>
+          </button>
+          <button class="logout" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="page-head">
+          <div>
+            <h1>Relatórios e Estatísticas</h1>
+            <p>Visualize dados consolidados e gere relatórios em PDF.</p>
+          </div>
+          <div class="actions-top">
+            <button class="btn btn-secondary" id="refreshBtn"><i class="fas fa-rotate"></i> Atualizar</button>
+            <button class="btn btn-primary" id="exportBtn"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Licitações Ativas</div>
+              <div class="stat-icon primary"><i class="fas fa-gavel"></i></div>
+            </div>
+            <div class="stat-value" id="statLicitacoes">0</div>
+            <div class="stat-change" id="statLicitacoesChange">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Total de Pedidos</div>
+              <div class="stat-icon success"><i class="fas fa-clipboard-list"></i></div>
+            </div>
+            <div class="stat-value" id="statPedidos">0</div>
+            <div class="stat-change" id="statPedidosChange">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Fornecedores Ativos</div>
+              <div class="stat-icon warning"><i class="fas fa-truck"></i></div>
+            </div>
+            <div class="stat-value" id="statFornecedores">0</div>
+            <div class="stat-change" id="statFornecedoresChange">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Valor Total Pedidos</div>
+              <div class="stat-icon danger"><i class="fas fa-money-bill-wave"></i></div>
+            </div>
+            <div class="stat-value" id="statValorTotal">R$ 0,00</div>
+            <div class="stat-change" id="statValorChange">—</div>
+          </div>
+        </div>
+
+        <!-- Pedidos por Status -->
+        <div class="card">
+          <div class="card-head">
+            <h3><i class="fas fa-chart-pie"></i> Distribuição de Pedidos por Status</h3>
+          </div>
+          <div class="twrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Quantidade</th>
+                  <th>Valor Total</th>
+                  <th>Percentual</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="pedidosStatusBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Filtros para Relatório -->
+        <div class="card">
+          <div class="card-head">
+            <h3><i class="fas fa-filter"></i> Filtros para Relatório</h3>
+          </div>
+          <div class="filters">
+            <div class="fg">
+              <label for="fTipoRelatorio">Tipo de Relatório</label>
+              <select class="select" id="fTipoRelatorio">
+                <option value="saldo_pregao">Saldo de Pregão</option>
+                <option value="pedidos_periodo">Pedidos por Período</option>
+                <option value="fornecedores_ativos">Fornecedores Ativos</option>
+                <option value="licitacoes_abertas">Licitações Abertas</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="fDataInicio">Data Início</label>
+              <input class="input" type="date" id="fDataInicio" />
+            </div>
+            <div class="fg">
+              <label for="fDataFim">Data Fim</label>
+              <input class="input" type="date" id="fDataFim" />
+            </div>
+            <div class="fg">
+              <label for="fStatusRelatorio">Status (Pedidos)</label>
+              <select class="select" id="fStatusRelatorio">
+                <option value="all">Todos</option>
+                <option value="aprovado">Aprovados</option>
+                <option value="reprovado">Reprovados</option>
+                <option value="enviado">Enviados</option>
+                <option value="rascunho">Rascunhos</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="fLicId">Licitação (opcional)</label>
+              <select class="select" id="fLicId">
+                <option value="">Todas as licitações</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="fFornecedorId">Fornecedor (opcional)</label>
+              <select class="select" id="fFornecedorId">
+                <option value="">Todos os fornecedores</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-actions">
+            <button class="btn btn-secondary" id="clearBtn"><i class="fas fa-rotate-left"></i> Limpar</button>
+            <button class="btn btn-info" id="previewBtn"><i class="fas fa-eye"></i> Visualizar</button>
+            <button class="btn btn-primary" id="generateBtn"><i class="fas fa-file-pdf"></i> Gerar Relatório</button>
+          </div>
+        </div>
+
+        <!-- Resumo do Relatório -->
+        <div class="card" id="resumoCard" style="display:none">
+          <div class="card-head">
+            <h3><i class="fas fa-file-alt"></i> Resumo do Relatório</h3>
+          </div>
+          <div style="padding:20px">
+            <div id="resumoContent">
+              <p>Configure os filtros acima e clique em "Visualizar" para ver o resumo.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Configurações globais
+      const API = {
+        stats: '/api/stats',
+        pull: '/api/sync/pull',
+        authCheck: '/api/auth/check',
+        fornecedores: '/api/fornecedores',
+        pedidos: '/api/pedidos',
+        pdfSaldoPregao: '/api/relatorios/saldo-pregao.pdf',
+        pdfPedidosPeriodo: '/api/relatorios/pedidos-periodo.pdf',
+        pdfFornecedoresAtivos: '/api/relatorios/fornecedores-ativos.pdf',
+        pdfLicitacoesAbertas: '/api/relatorios/licitacoes-abertas.pdf'
+      };
+
+      // Estado da aplicação
+      let STATS = {};
+      let LICITACOES = [];
+      let FORNECEDORES = [];
+      let PEDIDOS = [];
+      let CURRENT_USER = { name: 'Administrador', role: 'Administrador' };
+
+      // ============ FUNÇÕES UTILITÁRIAS ============
+      function getToken() {
+        return localStorage.getItem('access_token') || 
+               localStorage.getItem('compraPlus_access_token') ||
+               localStorage.getItem('compraPlus_token_v1') ||
+               '';
+      }
+
+      function toast(msg, type = 'info') {
+        const el = document.createElement('div');
+        el.className = 'toast';
+        let icon = 'fa-info-circle';
+        let color = 'var(--primary)';
+
+        if(type === 'success') { icon = 'fa-check-circle'; color = 'var(--success)'; }
+        else if(type === 'error') { icon = 'fa-exclamation-circle'; color = 'var(--danger)'; }
+        else if(type === 'warning') { icon = 'fa-exclamation-triangle'; color = 'var(--warning)'; }
+
+        el.innerHTML = `<i class="fas ${icon}"></i><div style="font-weight:800">${msg}</div>`;
+        el.style.borderLeftColor = color;
+        el.querySelector('i').style.color = color;
+        document.body.appendChild(el);
+        
+        requestAnimationFrame(() => el.classList.add('show'));
+        setTimeout(() => {
+          el.classList.remove('show');
+          setTimeout(() => el.remove(), 220);
+        }, 3000);
+      }
+
+      function formatMoney(valor) {
+        return new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(valor || 0);
+      }
+
+      function formatPercent(valor, total) {
+        if(total === 0) return '0%';
+        const percent = (valor / total) * 100;
+        return percent.toFixed(1) + '%';
+      }
+
+      // ============ FUNÇÕES DE API ============
+      async function apiGet(url) {
+        const token = getToken();
+        const headers = { 
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        };
+        
+        if(token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        try {
+          const res = await fetch(url, { headers });
+          
+          if(!res.ok) {
+            // Se for erro 401, redireciona para login
+            if(res.status === 401) {
+              toast('Sessão expirada. Faça login novamente.', 'error');
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 2000);
+              return null;
+            }
+            
+            const errorText = await res.text();
+            throw new Error(`Erro HTTP ${res.status}: ${errorText.slice(0, 200)}`);
+          }
+          
+          return await res.json();
+        } catch(error) {
+          console.error('Erro na requisição GET:', error);
+          throw error;
+        }
+      }
+
+      // ============ FUNÇÕES DE UI ============
+      function initTheme() {
+        const html = document.documentElement;
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        if (!themeToggleBtn) return;
+
+        function applyTheme(theme) {
+          html.setAttribute('data-theme', theme);
+          localStorage.setItem('theme', theme);
+
+          if (theme === 'dark') {
+            if (themeIcon) themeIcon.className = 'fas fa-sun';
+            if (themeText) themeText.textContent = 'Claro';
+          } else {
+            if (themeIcon) themeIcon.className = 'fas fa-moon';
+            if (themeText) themeText.textContent = 'Escuro';
+          }
+        }
+
+        applyTheme(localStorage.getItem('theme') || 'light');
+
+        themeToggleBtn.addEventListener('click', () => {
+          const current = html.getAttribute('data-theme') || 'light';
+          applyTheme(current === 'light' ? 'dark' : 'light');
+        });
+      }
+
+      function initSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const menuBtn = document.getElementById('menuBtn');
+        
+        if (!sidebar || !overlay || !menuBtn) return;
+        
+        function openSidebar() { 
+          sidebar.classList.add('show'); 
+          overlay.classList.add('show'); 
+          menuBtn.setAttribute('aria-expanded','true'); 
+          document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSidebar() { 
+          sidebar.classList.remove('show'); 
+          overlay.classList.remove('show'); 
+          menuBtn.setAttribute('aria-expanded','false'); 
+          document.body.style.overflow = '';
+        }
+        
+        menuBtn.addEventListener('click', () => sidebar.classList.contains('show') ? closeSidebar() : openSidebar());
+        overlay.addEventListener('click', closeSidebar);
+        
+        // Fechar sidebar ao clicar em links no mobile
+        document.querySelectorAll('.nav a').forEach(link => {
+          link.addEventListener('click', () => {
+            if(window.innerWidth <= 992) closeSidebar();
+          });
+        });
+      }
+
+      function generateMenu(allowedPages = []) {
+        const nav = document.querySelector('.nav');
+        if (!nav) return;
+        
+        const menuItems = {
+          dashboard: { icon: 'fa-tachometer-alt', label: 'Dashboard', href: '/dashboard.html' },
+          pedidos: { icon: 'fa-clipboard-list', label: 'Pedidos', href: '/pedidos.html' },
+          licitacoes: { icon: 'fa-gavel', label: 'Licitações', href: '/licitacoes.html' },
+          fornecedores: { icon: 'fa-truck', label: 'Fornecedores', href: '/fornecedores.html' },
+          relatorios: { icon: 'fa-chart-bar', label: 'Relatórios', href: '/relatorios.html' },
+          configuracoes: { icon: 'fa-cog', label: 'Configurações', href: '/configuracoes.html' },
+          usuarios: { icon: 'fa-users', label: 'Usuários', href: '/usuarios.html' }
+        };
+        
+        nav.innerHTML = '';
+        
+        // Sempre adiciona dashboard
+        const dashboard = menuItems.dashboard;
+        const dashboardLink = document.createElement('a');
+        dashboardLink.href = dashboard.href;
+        dashboardLink.innerHTML = `<i class="fas ${dashboard.icon}"></i><span>${dashboard.label}</span>`;
+        nav.appendChild(dashboardLink);
+        
+        // Adiciona outras páginas permitidas
+        for (const page of allowedPages) {
+          if (page === 'dashboard') continue;
+          
+          const menuItem = menuItems[page];
+          if (menuItem) {
+            const link = document.createElement('a');
+            link.href = menuItem.href;
+            link.innerHTML = `<i class="fas ${menuItem.icon}"></i><span>${menuItem.label}</span>`;
+            
+            // Marca como ativa se estiver na página atual
+            const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+            if (menuItem.href.includes(currentPage)) {
+              link.classList.add('active');
+            }
+            
+            nav.appendChild(link);
+          }
+        }
+      }
+
+      async function loadUser() {
+        try {
+          const data = await apiGet(API.authCheck);
+          
+          if(data?.authenticated && data.user) {
+            CURRENT_USER = { 
+              name: data.user.name || 'Usuário', 
+              role: data.user.role || '—',
+              allowed_pages: data.user.allowed_pages || []
+            };
+            
+            if(data?.access_token) {
+              localStorage.setItem('access_token', data.access_token);
+            }
+            
+            // Atualizar UI
+            document.getElementById('userName').textContent = CURRENT_USER.name;
+            document.getElementById('userRole').textContent = 'Perfil: ' + CURRENT_USER.role;
+            document.getElementById('userAvatar').textContent = 
+              String((CURRENT_USER.name || 'A').trim().charAt(0)).toUpperCase();
+            
+            // Gerar menu com permissões
+            generateMenu(CURRENT_USER.allowed_pages);
+            
+          } else {
+            toast('Usuário não autenticado. Redirecionando...', 'warning');
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1500);
+            return;
+          }
+        } catch(error) {
+          console.error('Erro ao carregar usuário:', error);
+          CURRENT_USER = { name: 'Administrador', role: 'Administrador', allowed_pages: [] };
+          generateMenu([]);
+        }
+      }
+
+      // ============ FUNÇÕES DE DADOS ============
+      async function loadAllData() {
+        try {
+          // Carregar estatísticas
+          const statsData = await apiGet(API.stats);
+          if(statsData?.success) {
+            STATS = statsData.stats || {};
+            updateStatsUI();
+          }
+
+          // Carregar dados para filtros
+          const syncData = await apiGet(API.pull);
+          if(syncData?.success) {
+            const data = syncData.data || {};
+            LICITACOES = Array.isArray(data.compraPlusLicitacoes_v1) ? data.compraPlusLicitacoes_v1 : [];
+            FORNECEDORES = Array.isArray(data.compraPlusFornecedores_v1) ? data.compraPlusFornecedores_v1 : [];
+            
+            // Tentar carregar fornecedores ativos
+            try {
+              const fornecedoresRes = await apiGet(API.fornecedores + '?status=active');
+              if(fornecedoresRes?.success && Array.isArray(fornecedoresRes.fornecedores)) {
+                FORNECEDORES = fornecedoresRes.fornecedores;
+              }
+            } catch(e) {
+              console.warn('Erro ao carregar fornecedores:', e);
+            }
+
+            updateFilterSelects();
+          }
+
+          // Carregar pedidos para estatísticas
+          await loadPedidosForStats();
+
+          toast('Dados carregados com sucesso', 'success');
+        } catch(error) {
+          console.error('Erro ao carregar dados:', error);
+          toast('Erro ao carregar dados: ' + error.message, 'error');
+        }
+      }
+
+      async function loadPedidosForStats() {
+        try {
+          const pedidosData = await apiGet(API.pedidos + '?status=all');
+          if(pedidosData?.success) {
+            PEDIDOS = Array.isArray(pedidosData.pedidos) ? pedidosData.pedidos : [];
+            renderPedidosStatusTable();
+          }
+        } catch(error) {
+          console.error('Erro ao carregar pedidos:', error);
+          PEDIDOS = [];
+        }
+      }
+
+      function updateStatsUI() {
+        // Licitações
+        document.getElementById('statLicitacoes').textContent = STATS.licitacoes || 0;
+        document.getElementById('statLicitacoesChange').textContent = 'Total do sistema';
+        
+        // Pedidos
+        document.getElementById('statPedidos').textContent = STATS.pedidos || 0;
+        document.getElementById('statPedidosChange').textContent = `${STATS.pedidos_aprovados || 0} aprovados`;
+        
+        // Fornecedores
+        document.getElementById('statFornecedores').textContent = STATS.fornecedores || 0;
+        document.getElementById('statFornecedoresChange').textContent = 'Ativos no sistema';
+        
+        // Valor Total
+        document.getElementById('statValorTotal').textContent = formatMoney(STATS.total_pedidos_valor || 0);
+        document.getElementById('statValorChange').textContent = 'Valor consolidado';
+      }
+
+      function updateFilterSelects() {
+        // Licitações
+        const licSelect = document.getElementById('fLicId');
+        if (licSelect) {
+          licSelect.innerHTML = '<option value="">Todas as licitações</option>';
+          
+          LICITACOES.forEach(lic => {
+            const option = document.createElement('option');
+            option.value = lic.id;
+            option.textContent = `${lic.numero || ('LIC-' + lic.id)} - ${lic.descricao?.substring(0, 30) || ''}`;
+            licSelect.appendChild(option);
+          });
+        }
+
+        // Fornecedores
+        const fornSelect = document.getElementById('fFornecedorId');
+        if (fornSelect) {
+          fornSelect.innerHTML = '<option value="">Todos os fornecedores</option>';
+          
+          FORNECEDORES.forEach(forn => {
+            const option = document.createElement('option');
+            option.value = forn.id;
+            const nome = forn.razao_social || forn.nome_fantasia || forn.nome || `Fornecedor ${forn.id}`;
+            option.textContent = nome.substring(0, 40);
+            fornSelect.appendChild(option);
+          });
+        }
+      }
+
+      function renderPedidosStatusTable() {
+        const tbody = document.getElementById('pedidosStatusBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+
+        if(!PEDIDOS.length) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" style="padding:18px;color:var(--app-muted);text-align:center">
+                <i class="fas fa-inbox"></i> Nenhum pedido encontrado.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        // Agrupar pedidos por status
+        const statusGroups = {
+          'aprovado': { count: 0, total: 0, label: 'Aprovados', color: 'st-ok' },
+          'reprovado': { count: 0, total: 0, label: 'Reprovados', color: 'st-bad' },
+          'enviado': { count: 0, total: 0, label: 'Enviados', color: 'st-warn' },
+          'rascunho': { count: 0, total: 0, label: 'Rascunhos', color: 'st-warn' }
+        };
+
+        PEDIDOS.forEach(pedido => {
+          const status = pedido.status?.toLowerCase() || 'rascunho';
+          if(statusGroups[status]) {
+            statusGroups[status].count++;
+            statusGroups[status].total += parseFloat(pedido.total || 0);
+          }
+        });
+
+        const totalPedidos = PEDIDOS.length;
+        const totalValor = PEDIDOS.reduce((sum, p) => sum + parseFloat(p.total || 0), 0);
+
+        // Renderizar cada status
+        Object.entries(statusGroups).forEach(([key, group]) => {
+          if(group.count > 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>
+                <span class="pill ${group.color}">
+                  <i class="fas fa-circle"></i> ${group.label}
+                </span>
+              </td>
+              <td style="font-weight:900">${group.count}</td>
+              <td style="font-weight:900">${formatMoney(group.total)}</td>
+              <td>${formatPercent(group.count, totalPedidos)}</td>
+              <td>
+                <button class="btn btn-info btn-sm" data-action="filterStatus" data-status="${key}">
+                  <i class="fas fa-filter"></i> Filtrar
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        // Linha de total
+        const totalRow = document.createElement('tr');
+        totalRow.style.backgroundColor = 'var(--app-card-2)';
+        totalRow.innerHTML = `
+          <td style="font-weight:900">TOTAL</td>
+          <td style="font-weight:900">${totalPedidos}</td>
+          <td style="font-weight:900">${formatMoney(totalValor)}</td>
+          <td style="font-weight:900">100%</td>
+          <td></td>
+        `;
+        tbody.appendChild(totalRow);
+      }
+
+      // ============ FUNÇÕES DE RELATÓRIOS ============
+      function getTipoRelatorioLabel(tipo) {
+        const labels = {
+          'saldo_pregao': 'Saldo de Pregão',
+          'pedidos_periodo': 'Pedidos por Período',
+          'fornecedores_ativos': 'Fornecedores Ativos',
+          'licitacoes_abertas': 'Licitações Abertas'
+        };
+        return labels[tipo] || tipo;
+      }
+
+      function getStatusLabel(status) {
+        const labels = {
+          'aprovado': 'Aprovados',
+          'reprovado': 'Reprovados',
+          'enviado': 'Enviados',
+          'rascunho': 'Rascunhos'
+        };
+        return labels[status] || status;
+      }
+
+      function generateResumo() {
+        const tipo = document.getElementById('fTipoRelatorio').value;
+        const dataInicio = document.getElementById('fDataInicio').value;
+        const dataFim = document.getElementById('fDataFim').value;
+        const status = document.getElementById('fStatusRelatorio').value;
+        const licId = document.getElementById('fLicId').value;
+        const fornecedorId = document.getElementById('fFornecedorId').value;
+
+        let resumoHTML = `<div style="line-height:1.6">`;
+        
+        resumoHTML += `<h4 style="color:var(--primary);margin-bottom:10px">Resumo do Relatório</h4>`;
+        
+        // Informações básicas
+        resumoHTML += `<p><strong>Tipo:</strong> ${getTipoRelatorioLabel(tipo)}</p>`;
+        
+        if(dataInicio || dataFim) {
+          resumoHTML += `<p><strong>Período:</strong> ${dataInicio || 'Início indefinido'} até ${dataFim || 'Fim indefinido'}</p>`;
+        }
+        
+        if(status !== 'all') {
+          resumoHTML += `<p><strong>Status dos pedidos:</strong> ${getStatusLabel(status)}</p>`;
+        }
+        
+        if(licId) {
+          const lic = LICITACOES.find(l => l.id == licId);
+          resumoHTML += `<p><strong>Licitação:</strong> ${lic?.numero || `ID ${licId}`}</p>`;
+        }
+        
+        if(fornecedorId) {
+          const forn = FORNECEDORES.find(f => f.id == fornecedorId);
+          const nome = forn?.razao_social || forn?.nome_fantasia || forn?.nome || `Fornecedor ${fornecedorId}`;
+          resumoHTML += `<p><strong>Fornecedor:</strong> ${nome}</p>`;
+        }
+        
+        // Estatísticas do relatório
+        resumoHTML += `<hr style="margin:15px 0;border-color:var(--app-border)">`;
+        resumoHTML += `<p><strong>Estatísticas atuais do sistema:</strong></p>`;
+        resumoHTML += `<ul style="margin:10px 0;padding-left:20px">`;
+        resumoHTML += `<li>Licitações: ${STATS.licitacoes || 0}</li>`;
+        resumoHTML += `<li>Pedidos: ${STATS.pedidos || 0}</li>`;
+        resumoHTML += `<li>Fornecedores ativos: ${STATS.fornecedores || 0}</li>`;
+        resumoHTML += `<li>Valor total: ${formatMoney(STATS.total_pedidos_valor || 0)}</li>`;
+        resumoHTML += `</ul>`;
+        
+        resumoHTML += `<p style="margin-top:15px;color:var(--app-muted);font-size:0.9rem">
+          <i class="fas fa-info-circle"></i> Clique em "Gerar Relatório" para exportar em PDF.
+        </p>`;
+        
+        resumoHTML += `</div>`;
+        
+        document.getElementById('resumoContent').innerHTML = resumoHTML;
+        document.getElementById('resumoCard').style.display = 'block';
+      }
+
+      async function downloadPDF(url, token, successMsg) {
+        try {
+          const headers = {};
+          if(token) headers['Authorization'] = `Bearer ${token}`;
+          
+          const resp = await fetch(url, { method: 'GET', headers });
+          
+          if(!resp.ok) {
+            const txt = await resp.text();
+            throw new Error(`HTTP ${resp.status} - ${txt.slice(0, 200)}`);
+          }
+          
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          
+          // Abrir PDF em nova aba
+          const newWindow = window.open(blobUrl, '_blank');
+          if (!newWindow) {
+            toast('Por favor, permita pop-ups para visualizar o PDF.', 'warning');
+          }
+          
+          // Liberar memória após um tempo
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+          
+          toast(successMsg || 'PDF gerado com sucesso!', 'success');
+        } catch(err) {
+          console.error('Erro ao baixar PDF:', err);
+          toast('Não foi possível gerar o PDF. Verifique login/permissões.', 'error');
+        }
+      }
+
+      function openPDFReport() {
+        const tipo = document.getElementById('fTipoRelatorio').value;
+        const token = getToken();
+        let url = '';
+
+        // Construir URL baseada no tipo de relatório
+        switch(tipo) {
+          case 'saldo_pregao':
+            url = API.pdfSaldoPregao;
+            const licId = document.getElementById('fLicId').value;
+            const fornecedorId = document.getElementById('fFornecedorId').value;
+            
+            const params = new URLSearchParams();
+            if(licId) params.set('licitacaoId', licId);
+            if(fornecedorId) params.set('fornecedorId', fornecedorId);
+            
+            // Buscar informações da licitação selecionada
+            if(licId) {
+              const lic = LICITACOES.find(l => l.id == licId);
+              if(lic?.numero) params.set('pregao', lic.numero);
+              if(lic?.descricao) params.set('titulo', lic.descricao.substring(0, 50));
+            }
+            
+            if(params.toString()) {
+              url += '?' + params.toString();
+            }
+            
+            downloadPDF(url, token, 'Relatório de saldo de pregão gerado.');
+            break;
+            
+          case 'pedidos_periodo':
+            url = API.pdfPedidosPeriodo;
+            const dataInicio = document.getElementById('fDataInicio').value;
+            const dataFim = document.getElementById('fDataFim').value;
+            const status = document.getElementById('fStatusRelatorio').value;
+            
+            const params2 = new URLSearchParams();
+            if(dataInicio) params2.set('dataInicio', dataInicio);
+            if(dataFim) params2.set('dataFim', dataFim);
+            if(status && status !== 'all') params2.set('status', status);
+            
+            if(params2.toString()) url += '?' + params2.toString();
+            downloadPDF(url, token, 'Relatório de pedidos por período gerado.');
+            break;
+            
+          case 'fornecedores_ativos':
+            downloadPDF(API.pdfFornecedoresAtivos, token, 'Relatório de fornecedores ativos gerado.');
+            break;
+            
+          case 'licitacoes_abertas':
+            downloadPDF(API.pdfLicitacoesAbertas, token, 'Relatório de licitações abertas gerado.');
+            break;
+            
+          default:
+            toast('Tipo de relatório inválido.', 'warning');
+        }
+      }
+
+      // ============ INICIALIZAÇÃO ============
+      function initDates() {
+        const hoje = new Date();
+        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        
+        const dataInicio = document.getElementById('fDataInicio');
+        const dataFim = document.getElementById('fDataFim');
+        
+        if(dataInicio) dataInicio.value = primeiroDiaMes.toISOString().split('T')[0];
+        if(dataFim) dataFim.value = hoje.toISOString().split('T')[0];
+      }
+
+      function initEventListeners() {
+        // Botão de atualizar
+        const refreshBtn = document.getElementById('refreshBtn');
+        if(refreshBtn) {
+          refreshBtn.addEventListener('click', async () => {
+            toast('Atualizando dados...', 'info');
+            await loadAllData();
+          });
+        }
+        
+        // Botão limpar filtros
+        const clearBtn = document.getElementById('clearBtn');
+        if(clearBtn) {
+          clearBtn.addEventListener('click', () => {
+            document.getElementById('fDataInicio').value = '';
+            document.getElementById('fDataFim').value = '';
+            document.getElementById('fStatusRelatorio').value = 'all';
+            document.getElementById('fLicId').value = '';
+            document.getElementById('fFornecedorId').value = '';
+            document.getElementById('resumoCard').style.display = 'none';
+            toast('Filtros limpos', 'info');
+          });
+        }
+        
+        // Botão visualizar resumo
+        const previewBtn = document.getElementById('previewBtn');
+        if(previewBtn) {
+          previewBtn.addEventListener('click', () => {
+            generateResumo();
+          });
+        }
+        
+        // Botão gerar relatório
+        const generateBtn = document.getElementById('generateBtn');
+        if(generateBtn) {
+          generateBtn.addEventListener('click', () => {
+            openPDFReport();
+          });
+        }
+        
+        // Botão exportar PDF (header)
+        const exportBtn = document.getElementById('exportBtn');
+        if(exportBtn) {
+          exportBtn.addEventListener('click', () => {
+            openPDFReport();
+          });
+        }
+        
+        // Event delegation para botões de filtrar por status
+        const pedidosStatusBody = document.getElementById('pedidosStatusBody');
+        if(pedidosStatusBody) {
+          pedidosStatusBody.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if(!btn) return;
+            
+            const action = btn.dataset.action;
+            const status = btn.dataset.status;
+            
+            if(action === 'filterStatus') {
+              document.getElementById('fStatusRelatorio').value = status;
+              document.getElementById('fTipoRelatorio').value = 'pedidos_periodo';
+              generateResumo();
+              
+              // Scroll para a seção de filtros
+              document.getElementById('resumoCard').scrollIntoView({ behavior: 'smooth' });
+              
+              toast(`Filtro aplicado: ${getStatusLabel(status)}`, 'info');
+            }
+          });
+        }
+        
+        // Botão de logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        if(logoutBtn) {
+          logoutBtn.addEventListener('click', () => {
+            if(confirm('Deseja sair do sistema?')) {
+              localStorage.removeItem('access_token');
+              localStorage.removeItem('compraPlus_token_v1');
+              localStorage.removeItem('compraPlus_access_token');
+              toast('Saindo do sistema...', 'info');
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 500);
+            }
+          });
+        }
+        
+        // Fechar sidebar com ESC
+        document.addEventListener('keydown', (e) => {
+          if(e.key === 'Escape') {
+            const sidebar = document.getElementById('sidebar');
+            if(sidebar && sidebar.classList.contains('show')) {
+              sidebar.classList.remove('show');
+              document.getElementById('overlay').classList.remove('show');
+              document.body.style.overflow = '';
+            }
+          }
+        });
+      }
+
+      // ============ INICIALIZAR APLICAÇÃO ============
+      async function initApp() {
+        // Inicializar componentes de UI
+        initTheme();
+        initSidebar();
+        initEventListeners();
+        initDates();
+        
+        // Carregar dados do usuário e sistema
+        await loadUser();
+        await loadAllData();
+        
+        toast('Relatórios carregados com sucesso!', 'success');
+      }
+
+      // Iniciar a aplicação
+      initApp();
+    });
+  </script>
+</body>
+</html>

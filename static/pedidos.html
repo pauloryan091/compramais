@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Pedidos | Compra+</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  
+  <style>
+    /* ESTILOS BÁSICOS (mantidos) */
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+    body{background:var(--app-bg);color:var(--app-text);min-height:100vh;overflow-x:hidden}
+    
+    :root{
+      --primary:#1e40af; --primary-light:#3b82f6; --primary-dark:#1e3a8a;
+      --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#0ea5e9;
+      --gray-50:#f8fafc; --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+      --gray-400:#94a3b8; --gray-500:#64748b; --gray-600:#475569; --gray-700:#334155; --gray-800:#1e293b;
+      --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.08); --shadow-md:0 8px 20px rgba(0,0,0,.08); --shadow-lg:0 20px 50px rgba(0,0,0,.15);
+      --transition:all .25s ease; --sidebar-w:260px;
+      --app-bg:#f8fafc; --app-card:#ffffff; --app-card-2:#f8fafc;
+      --app-text:#1e293b; --app-muted:#64748b; --app-border:#e2e8f0;
+      --app-input:#ffffff; --app-input-border:#e2e8f0;
+      --app-header:#ffffff; --app-profile:#f1f5f9; --app-profile-hover:#e2e8f0;
+      --app-table-head:#ffffff;
+    }
+    html[data-theme="dark"]{
+      --app-bg:#0b1220; --app-card:#0f172a; --app-card-2:#0b1220;
+      --app-text:#e5e7eb; --app-muted:#94a3b8; --app-border:#1f2a3a;
+      --app-input:#0b1220; --app-input-border:#1f2a3a;
+      --app-header:#0f172a; --app-profile:#111c30; --app-profile-hover:#172746;
+      --app-table-head:#0b1220;
+    }
+
+    /* Layout básico */
+    .dashboard{display:flex;min-height:100vh}
+    .main{flex:1;min-width:0;margin-left:var(--sidebar-w);transition:var(--transition)}
+    .sidebar{
+      position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+      background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+      color:#fff;padding:18px 12px;box-shadow:5px 0 18px rgba(0,0,0,.12);
+      z-index:1200;transition:transform .28s ease;
+    }
+    .brand{
+      padding:10px 12px 18px;border-bottom:1px solid rgba(255,255,255,.12);
+      margin-bottom:12px;display:flex;align-items:center;gap:10px;
+    }
+    .brand i{font-size:1.35rem}
+    .brand h2{font-size:1.5rem;letter-spacing:.2px}
+    .brand h2 span{color:#60a5fa}
+    .nav{padding:8px 6px}
+    .nav a{
+      display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);
+      color:rgba(255,255,255,.86);text-decoration:none;transition:var(--transition);margin-bottom:6px;
+    }
+    .nav a i{width:20px;text-align:center}
+    .nav a:hover,.nav a.active{background:rgba(255,255,255,.12);color:#fff;transform:translateX(4px)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:1100}
+    .overlay.show{display:block}
+    .header{
+      position:sticky;top:0;z-index:900;background:var(--app-header);
+      box-shadow:var(--shadow-sm);min-height:72px;padding:14px 18px;
+      display:flex;align-items:center;gap:14px;justify-content:space-between;border-bottom:1px solid var(--app-border);
+    }
+    .header-left{display:flex;align-items:center;gap:12px;min-width:0}
+    .menu-btn{
+      display:none;border:none;background:var(--gray-100);color:var(--primary);
+      width:44px;height:44px;border-radius:12px;cursor:pointer;transition:var(--transition);flex:0 0 auto;
+    }
+    html[data-theme="dark"] .menu-btn{background:#111c30;color:#93c5fd}
+    html[data-theme="dark"] .menu-btn:hover{background:#172746}
+    .menu-btn:hover{background:var(--gray-200)}
+    .title-wrap h2{font-size:1.25rem;color:var(--primary);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .title-wrap p{font-size:.9rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .profile{
+      display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--app-profile);
+      border-radius:999px;cursor:pointer;transition:var(--transition);
+      min-width:180px;max-width:340px;border:1px solid var(--app-border);
+    }
+    .profile:hover{background:var(--app-profile-hover)}
+    .avatar{
+      width:38px;height:38px;border-radius:999px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-light));
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex:0 0 auto;
+    }
+    .pinfo h4{font-size:.92rem;color:var(--app-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+    .pinfo p{font-size:.8rem;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:11px 16px;border:none;border-radius:var(--radius-lg);cursor:pointer;font-weight:800;
+      transition:var(--transition);text-decoration:none;white-space:nowrap;
+    }
+    .btn:active{transform:scale(.99)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;box-shadow:0 8px 18px rgba(59,130,246,.18)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(59,130,246,.25)}
+    .btn-secondary{background:var(--gray-100);color:var(--gray-700);border:2px solid var(--gray-200)}
+    html[data-theme="dark"] .btn-secondary{background:#111c30;color:#e5e7eb;border-color:var(--app-border)}
+    html[data-theme="dark"] .btn-secondary:hover{background:#172746}
+    .btn-success{background:linear-gradient(135deg,var(--success),#34d399);color:#fff}
+    .btn-warning{background:linear-gradient(135deg,var(--warning),#fbbf24);color:#fff}
+    .btn-danger{background:linear-gradient(135deg,var(--danger),#f87171);color:#fff}
+    .btn-info{background:linear-gradient(135deg,var(--info),#22d3ee);color:#fff}
+    .btn-sm{padding:8px 12px;border-radius:14px;font-size:.9rem}
+    .logout{
+      border:none;background:var(--danger);color:#fff;padding:10px 14px;border-radius:999px;cursor:pointer;
+      font-weight:800;display:flex;align-items:center;gap:8px;transition:var(--transition);white-space:nowrap;
+    }
+    .logout:hover{background:#dc2626;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+    .content{padding:20px}
+    .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:14px 0 18px;flex-wrap:wrap}
+    .page-head h1{font-size:1.7rem;color:var(--primary);line-height:1.1}
+    .page-head p{color:var(--app-muted);margin-top:8px}
+    .actions-top{display:flex;gap:10px;flex-wrap:wrap}
+    .card{
+      background:var(--app-card);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-md);
+      overflow:hidden;
+      border:1px solid var(--app-border);
+    }
+    .card-head{
+      padding:16px;border-bottom:1px solid var(--app-border);
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--app-card);
+    }
+    .card-head h3{display:flex;align-items:center;gap:10px;color:var(--app-text);font-size:1.15rem}
+    .filters{
+      padding:16px;
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:12px;
+    }
+    .fg{display:flex;flex-direction:column;gap:8px}
+    .fg label{font-weight:900;color:var(--gray-600);font-size:.92rem}
+    html[data-theme="dark"] .fg label{color:var(--app-muted)}
+    .input,.select,textarea.input{
+      width:100%;padding:12px 12px;border:2px solid var(--app-input-border);
+      border-radius:14px;outline:none;transition:var(--transition);
+      background:var(--app-input);color:var(--app-text);
+    }
+    .input:focus,.select:focus,textarea.input:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+    .filter-actions{padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .twrap{
+      margin:16px;border:1px solid var(--app-border);border-radius:16px;overflow:auto;background:var(--app-card);
+      max-height:520px;
+    }
+    table{width:100%;border-collapse:collapse;min-width:1100px}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--app-border);text-align:left;vertical-align:middle}
+    th{color:var(--app-muted);font-size:.9rem;font-weight:900;background:var(--app-table-head);position:sticky;top:0}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;font-weight:900;font-size:.85rem;
+      border:1px solid var(--app-border);background:var(--app-card-2);white-space:nowrap;
+    }
+    .st-ok{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+    .st-warn{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .st-bad{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    html[data-theme="dark"] .st-ok{background:rgba(16,185,129,.14);color:#a7f3d0;border-color:rgba(16,185,129,.22)}
+    html[data-theme="dark"] .st-warn{background:rgba(245,158,11,.14);color:#fde68a;border-color:rgba(245,158,11,.22)}
+    html[data-theme="dark"] .st-bad{background:rgba(239,68,68,.14);color:#fecaca;border-color:rgba(239,68,68,.22)}
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .toast{
+      position:fixed;top:18px;right:18px;z-index:3000;
+      background:var(--app-card);border-radius:16px;box-shadow:var(--shadow-lg);
+      border-left:5px solid var(--primary);padding:12px 14px;
+      display:flex;gap:10px;align-items:center;
+      max-width:min(420px, calc(100vw - 36px));
+      transform:translateX(140%);transition:transform .25s ease;color:var(--app-text);
+    }
+    .toast.show{transform:translateX(0)}
+    .toast i{color:var(--primary)}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:2000;padding:18px}
+    .modal-overlay.show{display:flex}
+    .modal{
+      width:min(980px, 100%);
+      background:var(--app-card);border:1px solid var(--app-border);
+      border-radius:20px;box-shadow:var(--shadow-lg);overflow:hidden;
+      max-height: calc(100vh - 36px);
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-head{padding:16px;border-bottom:1px solid var(--app-border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .modal-head h3{display:flex;align-items:center;gap:10px;color:var(--primary);font-size:1.1rem}
+    .close{border:none;background:transparent;color:var(--app-muted);width:42px;height:42px;border-radius:12px;cursor:pointer;transition:var(--transition)}
+    .close:hover{background:var(--app-card-2);color:var(--danger)}
+    .modal-body{padding:16px;overflow:auto;max-height: calc(100vh - 210px);}
+    .modal-actions{padding:0 16px 16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+    .hr{height:1px;background:var(--app-border);margin:14px 0}
+    .mini-note{
+      color:var(--app-muted);
+      font-weight:800;
+      font-size:.92rem;
+      line-height:1.35;
+    }
+    .section-title{
+      font-size:1.1rem;
+      color:var(--primary);
+      font-weight:900;
+      margin:24px 0 12px;
+      padding-bottom:8px;
+      border-bottom:2px solid var(--app-border);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    /* Estilos específicos para pedidos */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    
+    .item-card {
+      background: var(--app-card-2);
+      border: 2px solid var(--app-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      transition: var(--transition);
+    }
+    
+    .item-card:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
+    }
+    
+    .item-card.selected {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.05);
+    }
+    
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    
+    .item-name {
+      font-weight: 900;
+      color: var(--app-text);
+      font-size: 1rem;
+      flex: 1;
+    }
+    
+    .item-price {
+      font-weight: 900;
+      color: var(--success);
+      font-size: 1rem;
+      white-space: nowrap;
+    }
+    
+    .item-details {
+      color: var(--app-muted);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    
+    .item-quantity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    
+    .item-quantity input {
+      width: 80px;
+      padding: 8px;
+      border: 2px solid var(--app-input-border);
+      border-radius: var(--radius-sm);
+      background: var(--app-input);
+      color: var(--app-text);
+    }
+    
+    .item-stock {
+      font-size: 0.85rem;
+      color: var(--app-muted);
+    }
+    
+    .item-stock.warning {
+      color: var(--warning);
+    }
+    
+    .item-stock.danger {
+      color: var(--danger);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--app-muted);
+    }
+    
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: var(--app-border);
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .loading .spinner {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--app-border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .comprador-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 2px solid rgba(245, 158, 11, 0.3);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 16px;
+      color: var(--warning);
+    }
+    
+    .comprador-warning i {
+      color: var(--warning);
+      margin-right: 8px;
+    }
+
+    @media (max-width: 992px){
+      .menu-btn{display:inline-flex;align-items:center;justify-content:center}
+      .main{margin-left:0}
+      .sidebar{transform:translateX(-105%)}
+      .sidebar.show{transform:translateX(0)}
+      .filters{grid-template-columns:repeat(2, minmax(0,1fr))}
+      table{min-width:980px}
+      .items-grid{grid-template-columns:1fr}
+    }
+    @media (max-width: 640px){
+      .header{flex-wrap:wrap;align-items:flex-start}
+      .header-right{width:100%;justify-content:space-between}
+      .profile{flex:1;min-width:0}
+      .btn{width:100%}
+      .filter-actions{justify-content:stretch}
+      .filters{grid-template-columns:1fr}
+      table{min-width:880px}
+      .modal-body{ max-height: calc(100vh - 260px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <!-- Modal Principal para Criar/Editar Pedido -->
+  <div class="modal-overlay" id="modalPedido" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-head">
+        <h3><i class="fas fa-clipboard-list"></i> <span id="modalTitle">Criar Pedido</span></h3>
+        <button class="close" id="closeModal" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="filters" style="padding:0;grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="fg">
+            <label for="mNumero">Número do Pedido</label>
+            <input class="input" id="mNumero" placeholder="PED-000001" readonly />
+          </div>
+          <div class="fg">
+            <label for="mData">Data *</label>
+            <input class="input" type="date" id="mData" required />
+          </div>
+          
+          <div class="fg">
+            <label for="mLic">Licitação *</label>
+            <select class="select" id="mLic" required>
+              <option value="">Selecione uma licitação</option>
+            </select>
+          </div>
+          
+          <div class="fg">
+            <label for="mForn">Fornecedor *</label>
+            <select class="select" id="mForn" required disabled>
+              <option value="">Selecione primeiro a licitação</option>
+            </select>
+          </div>
+          
+          <div class="fg">
+            <label for="mStatus">Status</label>
+            <select class="select" id="mStatus">
+              <option value="rascunho">Rascunho</option>
+              <option value="enviado">Enviado</option>
+              <option value="aprovado">Aprovado</option>
+              <option value="reprovado">Reprovado</option>
+            </select>
+          </div>
+          
+          <div class="fg" style="grid-column:span 2">
+            <label for="mObs">Observações</label>
+            <textarea class="input" id="mObs" rows="2" placeholder="Observações sobre o pedido..."></textarea>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Itens Disponíveis -->
+        <div class="section-title">
+          <i class="fas fa-boxes-stacked"></i> Itens Disponíveis
+          <span class="pill" id="itemsCount">Selecione licitação e fornecedor</span>
+        </div>
+
+        <div class="items-grid" id="availableItems">
+          <div class="empty-state">
+            <i class="fas fa-box-open"></i>
+            <p>Selecione uma licitação e fornecedor para ver os itens disponíveis</p>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Itens Selecionados -->
+        <div class="section-title">
+          <i class="fas fa-shopping-cart"></i> Itens do Pedido
+          <span class="pill st-warn" id="selectedCount">0 itens selecionados</span>
+        </div>
+
+        <div class="twrap" style="max-height:260px; margin:0 0 16px 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Quantidade</th>
+                <th>Unidade</th>
+                <th>Preço Unit.</th>
+                <th>Subtotal</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="selectedItemsBody"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="text-align:right;font-weight:900;padding-right:16px">Total do Pedido:</td>
+                <td style="font-weight:900;color:var(--primary);font-size:1.1rem" id="selectedTotal">R$ 0,00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="empty-state" id="noItemsSelected" style="display:none">
+          <i class="fas fa-cart-plus"></i>
+          <p>Nenhum item selecionado. Adicione itens da lista acima.</p>
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+        <div class="mini-note" id="saveNote">Preencha os dados e adicione itens</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+          <button class="btn btn-primary" id="saveBtn"><i class="fas fa-save"></i> Salvar Rascunho</button>
+          <button class="btn btn-success" id="sendBtn" style="display:none"><i class="fas fa-paper-plane"></i> Enviar Pedido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Visualização -->
+  <div class="modal-overlay" id="viewModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-head">
+        <h3><i class="fas fa-eye"></i> <span id="viewModalTitle">Detalhes do Pedido</span></h3>
+        <button class="close" id="closeViewModal" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="modal-body" id="viewModalContent">
+        <!-- Conteúdo carregado dinamicamente -->
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="closeViewBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Análise (Aprovar/Reprovar) -->
+  <div class="modal-overlay" id="analiseModal" aria-hidden="true">
+    <div class="modal" style="width:min(500px, 100%)">
+      <div class="modal-head">
+        <h3><i class="fas fa-clipboard-check"></i> <span id="analiseModalTitle">Analisar Pedido</span></h3>
+        <button class="close" id="closeAnaliseModal" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="fg">
+          <label for="analiseAcao">Ação *</label>
+          <select class="select" id="analiseAcao" required>
+            <option value="">Selecione...</option>
+            <option value="aprovar">Aprovar Pedido</option>
+            <option value="reprovar">Reprovar Pedido</option>
+          </select>
+        </div>
+        
+        <div class="fg" id="observacaoContainer" style="display:none">
+          <label for="analiseObservacao">Motivo/ Observação *</label>
+          <textarea class="input" id="analiseObservacao" rows="4" placeholder="Informe o motivo da reprovação..."></textarea>
+          <div class="mini-note" style="margin-top:8px">
+            <i class="fas fa-info-circle"></i> Obrigatório para reprovação
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelAnaliseBtn">Cancelar</button>
+        <button class="btn btn-primary" id="confirmAnaliseBtn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard">
+    <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+      <div class="brand">
+        <i class="fas fa-shopping-cart"></i>
+        <h2>Compra<span>+</span></h2>
+      </div>
+
+      <nav class="nav">
+        <!-- Menu será gerado dinamicamente -->
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="title-wrap">
+            <h2>Pedidos</h2>
+            <p>Gestão de pedidos baseados em licitações</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="profile" id="userProfile" title="Perfil do usuário">
+            <div class="avatar" id="userAvatar">A</div>
+            <div class="pinfo">
+              <h4 id="userName">Carregando...</h4>
+              <p id="userRole">—</p>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary" id="themeToggleBtn" title="Alternar tema">
+            <i class="fas fa-moon" id="themeIcon"></i>
+            <span id="themeText">Escuro</span>
+          </button>
+
+          <button class="logout" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="page-head">
+          <div>
+            <h1>Gestão de Pedidos</h1>
+            <p id="rtInfo">Sistema controlado por licitações</p>
+          </div>
+
+          <div class="actions-top">
+            <button class="btn btn-secondary" id="refreshBtn"><i class="fas fa-rotate"></i> Atualizar</button>
+            <button class="btn btn-primary" id="newBtn"><i class="fas fa-plus-circle"></i> Novo Pedido</button>
+          </div>
+        </div>
+
+        <!-- Aviso para comprador -->
+        <div class="comprador-warning" id="compradorWarning" style="display:none">
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong>ATENÇÃO COMPRADOR:</strong> Você só pode criar pedidos baseados em licitações existentes. 
+          Os itens e preços são fixos conforme definido na licitação.
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3><i class="fas fa-filter"></i> Filtros</h3>
+          </div>
+
+          <div class="filters">
+            <div class="fg">
+              <label for="fStatus">Status</label>
+              <select class="select" id="fStatus">
+                <option value="all">Todos</option>
+                <option value="rascunho">Rascunho</option>
+                <option value="enviado">Enviado</option>
+                <option value="aprovado">Aprovado</option>
+                <option value="reprovado">Reprovado</option>
+              </select>
+            </div>
+
+            <div class="fg">
+              <label for="fQuery">Buscar</label>
+              <input class="input" id="fQuery" placeholder="Nº pedido, fornecedor, licitação..." />
+            </div>
+
+            <div class="fg">
+              <label for="fFrom">Data (de)</label>
+              <input class="input" id="fFrom" type="date" />
+            </div>
+
+            <div class="fg">
+              <label for="fTo">Data (até)</label>
+              <input class="input" id="fTo" type="date" />
+            </div>
+          </div>
+
+          <div class="filter-actions">
+            <button class="btn btn-secondary" id="clearBtn"><i class="fas fa-rotate-left"></i> Limpar</button>
+            <button class="btn btn-primary" id="applyBtn"><i class="fas fa-magnifying-glass"></i> Aplicar</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="card-head">
+            <h3><i class="fas fa-list"></i> Lista de Pedidos</h3>
+            <div class="row-actions">
+              <span class="pill st-ok" id="onlinePill"><i class="fas fa-signal"></i> Online</span>
+            </div>
+          </div>
+
+          <div class="twrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Data</th>
+                  <th>Licitação</th>
+                  <th>Fornecedor</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // =========================
+    // CONFIGURAÇÃO E ESTADO
+    // =========================
+    const BASE_URL = window.location.origin;
+    
+    const API = {
+      authCheck: '/api/auth/check',
+      login: '/api/login',
+      pedidos: '/api/pedidos',
+      licitacoes: '/api/licitacoes',
+      fornecedores: '/api/fornecedores',
+      fornecedoresLicitacao: (licId) => `/api/licitacoes/${licId}/fornecedores`,
+      itensLicitacao: (licId, fornId) => `/api/licitacoes/${licId}/itens/${fornId}`
+    };
+
+    let DB = {
+      pedidos: [],
+      licitacoes: [],
+      fornecedores: [],
+      itensLicitacao: {}
+    };
+
+    let CURRENT_USER = {
+      id: null,
+      name: 'Usuário',
+      role: 'Consulta',
+      allowed_pages: ['dashboard']
+    };
+
+    let editingPedido = null;
+    let selectedItems = [];
+    let currentItemsData = [];
+    let currentAnalisePedido = null;
+
+    // =========================
+    // FUNÇÕES UTILITÁRIAS
+    // =========================
+    function getToken() {
+      return localStorage.getItem('compraPlus_token_v1') || 
+             localStorage.getItem('access_token') || '';
+    }
+
+    async function apiCall(url, options = {}) {
+      const token = getToken();
+      const headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      };
+      
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      
+      const config = {
+        ...options,
+        headers
+      };
+      
+      try {
+        const response = await fetch(url.startsWith('http') ? url : BASE_URL + url, config);
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            toast('Sessão expirada. Faça login novamente.', 'error');
+            setTimeout(() => {
+              localStorage.removeItem('compraPlus_token_v1');
+              localStorage.removeItem('access_token');
+              window.location.href = 'index.html';
+            }, 2000);
+            throw new Error('Não autorizado');
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const text = await response.text();
+        return text ? JSON.parse(text) : null;
+      } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+      }
+    }
+
+    async function apiGet(url) {
+      return apiCall(url, { method: 'GET' });
+    }
+
+    async function apiPost(url, data) {
+      return apiCall(url, { 
+        method: 'POST', 
+        body: JSON.stringify(data) 
+      });
+    }
+
+    async function apiPut(url, data) {
+      return apiCall(url, { 
+        method: 'PUT', 
+        body: JSON.stringify(data) 
+      });
+    }
+
+    async function apiDelete(url) {
+      return apiCall(url, { method: 'DELETE' });
+    }
+
+    function toast(msg, type = 'info') {
+      const el = document.createElement('div');
+      el.className = 'toast';
+      let icon = 'fa-info-circle';
+      let color = 'var(--primary)';
+      
+      if (type === 'success') { 
+        icon = 'fa-check-circle'; 
+        color = 'var(--success)'; 
+      } else if (type === 'error') { 
+        icon = 'fa-exclamation-circle'; 
+        color = 'var(--danger)'; 
+      } else if (type === 'warning') { 
+        icon = 'fa-exclamation-triangle'; 
+        color = 'var(--warning)'; 
+      }
+      
+      el.innerHTML = `<i class="fas ${icon}"></i><div style="font-weight:800">${msg}</div>`;
+      el.style.borderLeftColor = color;
+      el.querySelector('i').style.color = color;
+      document.body.appendChild(el);
+      
+      requestAnimationFrame(() => el.classList.add('show'));
+      setTimeout(() => { 
+        el.classList.remove('show'); 
+        setTimeout(() => el.remove(), 220); 
+      }, 3000);
+    }
+
+    function money(v) {
+      const n = Number(v || 0);
+      return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      if (Number.isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('pt-BR');
+    }
+
+    function pad(n, width) {
+      const s = String(n);
+      return s.length >= width ? s : ('0'.repeat(width - s.length) + s);
+    }
+
+    function pillStatus(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'aprovado') return `<span class="pill st-ok"><i class="fas fa-check-circle"></i> Aprovado</span>`;
+      if (s === 'reprovado') return `<span class="pill st-bad"><i class="fas fa-times-circle"></i> Reprovado</span>`;
+      if (s === 'enviado') return `<span class="pill st-warn"><i class="fas fa-paper-plane"></i> Enviado</span>`;
+      return `<span class="pill st-warn"><i class="fas fa-pen"></i> Rascunho</span>`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // =========================
+    // TEMA E LAYOUT
+    // =========================
+    const htmlEl = document.documentElement;
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+
+    function applyTheme(theme) {
+      htmlEl.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      if (theme === 'dark') {
+        themeIcon.className = 'fas fa-sun';
+        themeText.textContent = 'Claro';
+      } else {
+        themeIcon.className = 'fas fa-moon';
+        themeText.textContent = 'Escuro';
+      }
+    }
+
+    function initTheme() {
+      applyTheme(localStorage.getItem('theme') || 'light');
+    }
+
+    // =========================
+    // MENU LATERAL
+    // =========================
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function openSidebar() { 
+      sidebar.classList.add('show'); 
+      overlay.classList.add('show'); 
+      menuBtn.setAttribute('aria-expanded', 'true'); 
+    }
+
+    function closeSidebar() { 
+      sidebar.classList.remove('show'); 
+      overlay.classList.remove('show'); 
+      menuBtn.setAttribute('aria-expanded', 'false'); 
+    }
+
+    function generateMenu(allowedPages) {
+      const nav = document.querySelector('.nav');
+      if (!nav) return;
+
+      nav.innerHTML = '';
+
+      const menuItems = {
+        dashboard: { icon: 'fa-tachometer-alt', label: 'Dashboard', href: 'dashboard.html' },
+        pedidos: { icon: 'fa-clipboard-list', label: 'Pedidos', href: 'pedidos.html' },
+        licitacoes: { icon: 'fa-gavel', label: 'Licitações', href: 'licitacoes.html' },
+        fornecedores: { icon: 'fa-truck', label: 'Fornecedores', href: 'fornecedores.html' },
+        relatorios: { icon: 'fa-chart-bar', label: 'Relatórios', href: 'relatorios.html' },
+        configuracoes: { icon: 'fa-cog', label: 'Configurações', href: 'configuracoes.html' },
+        usuarios: { icon: 'fa-users', label: 'Usuários', href: 'usuarios.html' }
+      };
+
+      const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+
+      // Sempre adiciona dashboard
+      const addLink = (item) => {
+        const link = document.createElement('a');
+        link.href = item.href;
+        link.innerHTML = `<i class="fas ${item.icon}"></i><span>${item.label}</span>`;
+        if (item.href.includes(currentPage)) link.classList.add('active');
+        nav.appendChild(link);
+      };
+
+      addLink(menuItems.dashboard);
+
+      // Adiciona páginas permitidas
+      (allowedPages || []).forEach(page => {
+        if (page === 'dashboard') return;
+        if (menuItems[page]) addLink(menuItems[page]);
+      });
+    }
+
+    // =========================
+    // AUTENTICAÇÃO E PERMISSÕES
+    // =========================
+    async function loadUser() {
+      const nameEl = document.getElementById('userName');
+      const roleEl = document.getElementById('userRole');
+      const avEl = document.getElementById('userAvatar');
+      const newBtn = document.getElementById('newBtn');
+      const compradorWarning = document.getElementById('compradorWarning');
+
+      try {
+        const data = await apiGet(API.authCheck);
+        
+        if (data?.authenticated && data.user) {
+          CURRENT_USER = {
+            id: data.user.id,
+            name: data.user.name || 'Usuário',
+            role: data.user.role || 'Consulta',
+            allowed_pages: data.user.allowed_pages || ['dashboard']
+          };
+        } else {
+          // Redirecionar para login se não autenticado
+          window.location.href = 'index.html';
+          return;
+        }
+      } catch (e) {
+        console.error('Erro ao carregar usuário:', e);
+        CURRENT_USER = { 
+          id: null, 
+          name: 'Erro de conexão', 
+          role: 'Sessão expirada', 
+          allowed_pages: ['dashboard'] 
+        };
+      }
+
+      nameEl.textContent = CURRENT_USER.name;
+      roleEl.textContent = 'Perfil: ' + CURRENT_USER.role;
+      avEl.textContent = String((CURRENT_USER.name || 'U').trim().charAt(0)).toUpperCase();
+
+      generateMenu(CURRENT_USER.allowed_pages);
+      
+      // Mostra/oculta botão de novo pedido
+      const canCreate = canCreateOrder();
+      newBtn.style.display = canCreate ? 'inline-flex' : 'none';
+      
+      // Mostra aviso para comprador
+      if (CURRENT_USER.role === 'Comprador') {
+        compradorWarning.style.display = 'block';
+      }
+    }
+
+    function canCreateOrder() {
+      return ['Administrador', 'Gerente', 'Comprador'].includes(CURRENT_USER.role);
+    }
+
+    function canApproveOrder() {
+      return ['Administrador', 'Gerente'].includes(CURRENT_USER.role);
+    }
+
+    function isOwner(pedido) {
+      return pedido && Number(pedido.userId) === Number(CURRENT_USER.id);
+    }
+
+    // =========================
+    // CARREGAMENTO DE DADOS
+    // =========================
+    function setOnline(ok) {
+      const pill = document.getElementById('onlinePill');
+      pill.className = 'pill ' + (ok ? 'st-ok' : 'st-bad');
+      pill.innerHTML = ok
+        ? '<i class="fas fa-signal"></i> Online'
+        : '<i class="fas fa-triangle-exclamation"></i> Offline';
+    }
+
+    async function loadFornecedores() {
+      try {
+        const data = await apiGet(API.fornecedores);
+        if (data?.success && Array.isArray(data.fornecedores)) {
+          DB.fornecedores = data.fornecedores;
+          return true;
+        }
+        DB.fornecedores = [];
+        return false;
+      } catch (e) {
+        console.error('Erro ao carregar fornecedores:', e);
+        DB.fornecedores = [];
+        return false;
+      }
+    }
+
+    async function loadLicitacoes() {
+      try {
+        const data = await apiGet(API.licitacoes);
+        if (data?.success && Array.isArray(data.licitacoes)) {
+          DB.licitacoes = data.licitacoes.map(l => ({
+            id: Number(l.id ?? 0),
+            numero: String(l.numero || ''),
+            descricao: String(l.descricao || ''),
+            status: String(l.status || 'aberta'),
+            inicio: String(l.inicio || ''),
+            fim: String(l.fim || ''),
+            valor_estimado: Number(l.valor_estimado ?? 0),
+            observacoes: String(l.observacoes || '')
+          }));
+          return true;
+        }
+        DB.licitacoes = [];
+        return false;
+      } catch (e) {
+        console.error('Erro ao carregar licitações:', e);
+        DB.licitacoes = [];
+        return false;
+      }
+    }
+
+    async function loadPedidos() {
+      try {
+        const data = await apiGet(API.pedidos);
+        if (data?.success && Array.isArray(data.pedidos)) {
+          DB.pedidos = data.pedidos;
+          document.getElementById('rtInfo').textContent = `${DB.pedidos.length} pedidos carregados`;
+          setOnline(true);
+          return true;
+        } else {
+          DB.pedidos = [];
+          document.getElementById('rtInfo').textContent = 'Nenhum pedido encontrado';
+          setOnline(false);
+          return false;
+        }
+      } catch (e) {
+        console.error('Erro ao carregar pedidos:', e);
+        DB.pedidos = [];
+        document.getElementById('rtInfo').textContent = 'Erro ao carregar pedidos';
+        setOnline(false);
+        return false;
+      }
+    }
+
+    async function loadAllData() {
+      try {
+        await Promise.all([
+          loadFornecedores(),
+          loadLicitacoes(),
+          loadPedidos()
+        ]);
+        renderTable();
+        return true;
+      } catch (e) {
+        console.error('Erro ao carregar dados:', e);
+        toast('Erro ao carregar dados: ' + e.message, 'error');
+        return false;
+      }
+    }
+
+    // =========================
+    // RENDERIZAÇÃO DA TABELA
+    // =========================
+    function getFilteredPedidos() {
+      const st = document.getElementById('fStatus').value;
+      const q = (document.getElementById('fQuery').value || '').trim().toLowerCase();
+      const from = document.getElementById('fFrom').value || '';
+      const to = document.getElementById('fTo').value || '';
+
+      return DB.pedidos.filter(p => {
+        if (st !== 'all' && String(p.status || '').toLowerCase() !== st) return false;
+        if (from && String(p.data || '') < from) return false;
+        if (to && String(p.data || '') > to) return false;
+
+        if (q) {
+          const searchStr = [
+            p.numero || '',
+            p.data || '',
+            findLicName(p.licitacaoId),
+            findFornName(p.fornecedorId),
+            p.status || '',
+            p.observacao || ''
+          ].join(' ').toLowerCase();
+          if (!searchStr.includes(q)) return false;
+        }
+        return true;
+      }).sort((a, b) => (b.id || 0) - (a.id || 0));
+    }
+
+    function findLic(id) {
+      return DB.licitacoes.find(x => Number(x.id) === Number(id));
+    }
+
+    function findForn(id) {
+      return DB.fornecedores.find(x => Number(x.id) === Number(id));
+    }
+
+    function findLicName(id) {
+      const l = findLic(id);
+      if (!l) return id ? `Licitação #${id}` : '—';
+      return l.numero ? `${l.numero}` : `Licitação ${id}`;
+    }
+
+    function findFornName(id) {
+      const f = findForn(id);
+      if (!f) return id ? `Fornecedor #${id}` : '—';
+      return f.razao_social || f.nome_fantasia || f.nome || `Fornecedor ${id}`;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      const data = getFilteredPedidos();
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="padding:18px;color:var(--app-muted)">
+          <i class="fas fa-inbox"></i> Nenhum pedido encontrado.
+        </td></tr>`;
+        return;
+      }
+
+      data.forEach(p => {
+        const tr = document.createElement('tr');
+        const statusLower = String(p.status || '').toLowerCase();
+        
+        let acoes = `
+          <button class="btn btn-info btn-sm" data-action="view" data-id="${p.id}" title="Visualizar">
+            <i class="fas fa-eye"></i>
+          </button>
+        `;
+
+        // Verifica se o usuário pode editar/excluir
+        if (statusLower === 'rascunho') {
+          if (isOwner(p) || canApproveOrder()) {
+            acoes += `
+              <button class="btn btn-warning btn-sm" data-action="edit" data-id="${p.id}" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-danger btn-sm" data-action="delete" data-id="${p.id}" title="Excluir">
+                <i class="fas fa-trash"></i>
+              </button>
+            `;
+          }
+        } else if (statusLower === 'enviado' && canApproveOrder()) {
+          acoes += `
+            <button class="btn btn-success btn-sm" data-action="analisar" data-id="${p.id}" title="Analisar Pedido">
+              <i class="fas fa-clipboard-check"></i>
+            </button>
+          `;
+        }
+
+        tr.innerHTML = `
+          <td style="font-weight:900">${p.numero || ('PED-' + pad(p.id, 6))}</td>
+          <td>${formatDate(p.data)}</td>
+          <td>${findLicName(p.licitacaoId)}</td>
+          <td>${findFornName(p.fornecedorId)}</td>
+          <td>${pillStatus(p.status)}</td>
+          <td style="font-weight:900">${money(p.total)}</td>
+          <td>
+            <div class="row-actions">${acoes}</div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // =========================
+    // FUNÇÕES PARA MANIPULAÇÃO DE ITENS - CORRIGIDAS
+    // =========================
+    function addItem(itemId) {
+        const item = currentItemsData.find(i => Number(i.id) === Number(itemId));
+        if (!item) return;
+        
+        // Verifica se já está selecionado
+        if (selectedItems.some(si => Number(si.itemId) === Number(itemId))) {
+            toast('Item já está no pedido', 'warning');
+            return;
+        }
+        
+        // Adiciona com quantidade mínima
+        const quantidadeDisponivel = item.quantidade || item.quantidade_disponivel || item.qtd || item.quantidade_real_disponivel || 0;
+        const quantidadeMinima = item.quantidade_minima || item.qtd_minima || 1;
+        
+        selectedItems.push({
+            itemId: item.id,
+            nome: item.nome,
+            descricao: item.descricao,
+            unidade: item.unidade || 'UN',
+            preco: item.preco,
+            quantidade: quantidadeMinima,
+            quantidade_minima: quantidadeMinima,
+            quantidade_maxima: quantidadeDisponivel,
+            subtotal: quantidadeMinima * item.preco
+        });
+        
+        updateAvailableItems();
+        updateSelectedItemsTable();
+    }
+
+    function removeItem(itemId) {
+        selectedItems = selectedItems.filter(item => Number(item.itemId) !== Number(itemId));
+        updateAvailableItems();
+        updateSelectedItemsTable();
+    }
+
+    function updateItemQuantity(itemId, quantidade) {
+        const q = Math.floor(Number(quantidade || 0));
+        const item = selectedItems.find(si => Number(si.itemId) === Number(itemId));
+        if (!item) return;
+        
+        // Valida quantidade
+        const min = item.quantidade_minima || 1;
+        const max = item.quantidade_maxima || Infinity;
+        const clamped = Math.max(min, Math.min(q, max));
+        
+        if (clamped !== q) {
+            toast(`Quantidade ajustada para ${clamped} (mín: ${min}, máx: ${max})`, 'warning');
+        }
+        
+        item.quantidade = clamped;
+        item.subtotal = item.quantidade * item.preco;
+        
+        updateSelectedItemsTable();
+        updateAvailableItems();
+    }
+
+    // =========================
+    // MODAL DE PEDIDO - CORRIGIDO
+    // =========================
+    const modalPedido = document.getElementById('modalPedido');
+    const viewModal = document.getElementById('viewModal');
+    const analiseModal = document.getElementById('analiseModal');
+
+    function resetModal() {
+      selectedItems = [];
+      currentItemsData = [];
+      
+      // Gera próximo número de pedido (apenas para visualização)
+      const nextId = DB.pedidos.reduce((max, p) => Math.max(max, Number(p.id || 0)), 0) + 1;
+      document.getElementById('mNumero').value = 'PED-' + pad(nextId, 6);
+      document.getElementById('mData').value = new Date().toISOString().split('T')[0];
+      document.getElementById('mStatus').value = 'rascunho';
+      document.getElementById('mObs').value = '';
+      
+      // Limpa selects
+      document.getElementById('mLic').value = '';
+      document.getElementById('mForn').innerHTML = '<option value="">Selecione primeiro a licitação</option>';
+      document.getElementById('mForn').disabled = true;
+      
+      // Limpa itens
+      document.getElementById('availableItems').innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-box-open"></i>
+          <p>Selecione uma licitação e fornecedor para ver os itens disponíveis</p>
+        </div>
+      `;
+      
+      document.getElementById('itemsCount').textContent = 'Selecione licitação e fornecedor';
+      document.getElementById('itemsCount').className = 'pill';
+      
+      updateSelectedItemsTable();
+      
+      // Botões
+      document.getElementById('sendBtn').style.display = 'none';
+      document.getElementById('saveNote').textContent = 'Preencha os dados e adicione itens';
+    }
+
+    function fillModalSelects() {
+      const licSelect = document.getElementById('mLic');
+      licSelect.innerHTML = '<option value="">Selecione uma licitação</option>';
+      
+      // Filtra apenas licitações abertas ou em análise
+      DB.licitacoes
+        .filter(l => l.status === 'aberta' || l.status === 'em_analise')
+        .sort((a, b) => String(b.numero || '').localeCompare(String(a.numero || '')))
+        .forEach(l => {
+          const option = document.createElement('option');
+          option.value = l.id;
+          option.textContent = `${l.numero || 'LIC-' + l.id} - ${l.descricao?.substring(0, 50) || ''}`;
+          licSelect.appendChild(option);
+        });
+      
+      // Evento para licitação
+      licSelect.addEventListener('change', async function() {
+        const licId = this.value;
+        const fornSelect = document.getElementById('mForn');
+        
+        if (!licId) {
+          fornSelect.innerHTML = '<option value="">Selecione primeiro a licitação</option>';
+          fornSelect.disabled = true;
+          document.getElementById('availableItems').innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-box-open"></i>
+              <p>Selecione uma licitação e fornecedor para ver os itens disponíveis</p>
+            </div>
+          `;
+          document.getElementById('itemsCount').textContent = 'Selecione licitação e fornecedor';
+          document.getElementById('itemsCount').className = 'pill';
+          return;
+        }
+        
+        // Carrega fornecedores desta licitação
+        await loadFornecedoresPorLicitacao(licId);
+      });
+    }
+
+    async function loadFornecedoresPorLicitacao(licId) {
+      const fornSelect = document.getElementById('mForn');
+      fornSelect.innerHTML = '<option value="">Carregando fornecedores...</option>';
+      fornSelect.disabled = true;
+      
+      try {
+        // Usa o endpoint correto do app.py
+        const data = await apiGet(API.fornecedoresLicitacao(licId));
+        
+        if (data?.success && Array.isArray(data.fornecedores)) {
+          fornSelect.innerHTML = '<option value="">Selecione um fornecedor</option>';
+          
+          data.fornecedores.forEach(f => {
+            const option = document.createElement('option');
+            option.value = f.id;
+            const nome = f.razao_social || f.nome_fantasia || `Fornecedor ${f.id}`;
+            option.textContent = `${nome} ${f.cnpj ? '(' + f.cnpj + ')' : ''}`;
+            fornSelect.appendChild(option);
+          });
+          
+          fornSelect.disabled = false;
+          
+          // Evento para fornecedor
+          fornSelect.addEventListener('change', function() {
+            const fornId = this.value;
+            if (!fornId) return;
+            
+            loadItensDisponiveis(licId, fornId);
+          });
+        } else {
+          fornSelect.innerHTML = '<option value="" disabled>Nenhum fornecedor disponível</option>';
+          document.getElementById('availableItems').innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-box-open"></i>
+              <p>Nenhum fornecedor disponível para esta licitação</p>
+            </div>
+          `;
+          document.getElementById('itemsCount').textContent = 'Nenhum fornecedor';
+          document.getElementById('itemsCount').className = 'pill st-warn';
+        }
+        
+      } catch (e) {
+        console.error('Erro ao carregar fornecedores:', e);
+        fornSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+        toast('Erro ao carregar fornecedores', 'error');
+      }
+    }
+
+    async function loadItensDisponiveis(licId, fornId) {
+      const container = document.getElementById('availableItems');
+      container.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Carregando itens...</p>
+        </div>
+      `;
+      
+      document.getElementById('itemsCount').textContent = 'Carregando...';
+      document.getElementById('itemsCount').className = 'pill st-warn';
+      
+      try {
+        const data = await apiGet(API.itensLicitacao(licId, fornId));
+        console.log('DEBUG - Dados recebidos da API:', data); // Para debug
+        
+        if (data?.success && Array.isArray(data.itens)) {
+          // Mapeia os itens com campos flexíveis
+          currentItemsData = data.itens.map(item => ({
+            id: item.id,
+            nome: item.nome || item.item || item.descricao || 'Item sem nome',
+            descricao: item.descricao || item.apresentacao || item.observacao || '',
+            preco: item.preco || item.preco_unitario || item.valor_unitario || 0,
+            unidade: item.unidade || item.unidade_medida || 'UN',
+            // Tenta vários nomes possíveis para quantidade
+            quantidade: item.quantidade || item.quantidade_disponivel || item.qtd || item.quantidade_real_disponivel || item.estoque || 0,
+            quantidade_minima: item.quantidade_minima || item.qtd_minima || item.minimo || 1,
+            quantidade_disponivel: item.quantidade || item.quantidade_disponivel || item.qtd || item.quantidade_real_disponivel || item.estoque || 0,
+            quantidade_real_disponivel: item.quantidade || item.quantidade_disponivel || item.qtd || item.quantidade_real_disponivel || item.estoque || 0
+          }));
+          
+          console.log('DEBUG - Itens mapeados:', currentItemsData); // Para debug
+          
+          if (currentItemsData.length === 0) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <p>Nenhum item disponível para esta licitação/fornecedor</p>
+              </div>
+            `;
+            document.getElementById('itemsCount').textContent = 'Nenhum item';
+            document.getElementById('itemsCount').className = 'pill st-warn';
+            return;
+          }
+          
+          document.getElementById('itemsCount').textContent = `${currentItemsData.length} item(ns) disponível(is)`;
+          document.getElementById('itemsCount').className = 'pill st-ok';
+          
+          renderAvailableItems(currentItemsData);
+          
+        } else {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-box-open"></i>
+              <p>Nenhum item disponível</p>
+            </div>
+          `;
+          document.getElementById('itemsCount').textContent = 'Nenhum item';
+          document.getElementById('itemsCount').className = 'pill st-warn';
+        }
+        
+      } catch (e) {
+        console.error('Erro ao carregar itens:', e);
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Erro ao carregar itens</p>
+          </div>
+        `;
+        document.getElementById('itemsCount').textContent = 'Erro ao carregar';
+        document.getElementById('itemsCount').className = 'pill st-bad';
+        toast('Erro ao carregar itens: ' + e.message, 'error');
+      }
+    }
+
+    function renderAvailableItems(itens) {
+      const container = document.getElementById('availableItems');
+      container.innerHTML = '';
+      
+      itens.forEach(item => {
+        const isSelected = selectedItems.some(si => Number(si.itemId) === Number(item.id));
+        const selectedItem = isSelected ? selectedItems.find(si => Number(si.itemId) === Number(item.id)) : null;
+        
+        const card = document.createElement('div');
+        card.className = `item-card ${isSelected ? 'selected' : ''}`;
+        card.dataset.itemId = item.id;
+        
+        // Usa o campo correto para quantidade disponível
+        const quantidadeDisponivel = item.quantidade || item.quantidade_disponivel || item.qtd || item.quantidade_real_disponivel || 0;
+        const stockClass = quantidadeDisponivel <= 0 ? 'danger' : (quantidadeDisponivel < 10 ? 'warning' : '');
+        
+        // Formata o número para exibição
+        const quantidadeFormatada = quantidadeDisponivel.toLocaleString('pt-BR');
+        
+        card.innerHTML = `
+            <div class="item-header">
+                <div class="item-name">${escapeHtml(item.nome)}</div>
+                <div class="item-price">${money(item.preco)}</div>
+            </div>
+            <div class="item-details">${escapeHtml(item.descricao || '')}</div>
+            <div class="item-stock ${stockClass}">
+                Disponível: ${quantidadeFormatada} ${item.unidade || 'UN'} | Mínimo: ${item.quantidade_minima || 1}
+            </div>
+            <div class="item-quantity">
+                <input type="number" 
+                       class="input" 
+                       min="${item.quantidade_minima || 1}" 
+                       max="${quantidadeDisponivel}"
+                       value="${isSelected ? selectedItem.quantidade : (item.quantidade_minima || 1)}"
+                       ${!isSelected ? 'disabled' : ''}>
+                ${isSelected ? 
+                `<button class="btn btn-danger btn-sm" style="margin-left:auto">
+                    <i class="fas fa-trash"></i> Remover
+                </button>` :
+                `<button class="btn btn-primary btn-sm add-item-btn" style="margin-left:auto" ${quantidadeDisponivel <= 0 ? 'disabled' : ''}>
+                    <i class="fas fa-plus"></i> Adicionar
+                </button>`
+                }
+            </div>
+        `;
+        
+        // Adiciona eventos aos botões e inputs
+        const input = card.querySelector('input');
+        const btn = card.querySelector('button');
+        
+        if (isSelected) {
+            input.addEventListener('change', (e) => updateItemQuantity(item.id, e.target.value));
+            btn.addEventListener('click', () => removeItem(item.id));
+        } else {
+            input.disabled = true;
+            if (quantidadeDisponivel > 0) {
+                btn.addEventListener('click', () => addItem(item.id));
+            } else {
+                btn.disabled = true;
+            }
+        }
+        
+        container.appendChild(card);
+      });
+    }
+
+    function updateSelectedItemsTable() {
+      const tbody = document.getElementById('selectedItemsBody');
+      tbody.innerHTML = '';
+      
+      let total = 0;
+      
+      selectedItems.forEach(item => {
+        total += item.subtotal;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight:900">${escapeHtml(item.nome)}</td>
+            <td>
+                <input type="number" 
+                       class="input item-quantity-input" 
+                       style="width:90px" 
+                       min="${item.quantidade_minima}" 
+                       max="${item.quantidade_maxima}" 
+                       value="${item.quantidade}"
+                       data-item-id="${item.itemId}">
+                <div style="font-size:.8rem;color:var(--app-muted);margin-top:4px">
+                    mín ${item.quantidade_minima} · máx ${item.quantidade_maxima || '—'}
+                </div>
+            </td>
+            <td>${escapeHtml(item.unidade)}</td>
+            <td>${money(item.preco)}</td>
+            <td style="font-weight:900">${money(item.subtotal)}</td>
+            <td>
+                <button class="btn btn-danger btn-sm remove-item-btn" data-item-id="${item.itemId}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+      });
+      
+      // Adiciona eventos após criar a tabela
+      tbody.querySelectorAll('.item-quantity-input').forEach(input => {
+        const itemId = input.getAttribute('data-item-id');
+        input.addEventListener('change', (e) => updateItemQuantity(itemId, e.target.value));
+      });
+      
+      tbody.querySelectorAll('.remove-item-btn').forEach(btn => {
+        const itemId = btn.getAttribute('data-item-id');
+        btn.addEventListener('click', () => removeItem(itemId));
+      });
+      
+      document.getElementById('selectedTotal').textContent = money(total);
+      document.getElementById('selectedCount').textContent = `${selectedItems.length} item(ns) selecionado(s)`;
+      
+      // Mostra/oculta mensagem de "nenhum item"
+      document.getElementById('noItemsSelected').style.display = selectedItems.length === 0 ? 'block' : 'none';
+    }
+
+    function updateAvailableItems() {
+      const cards = document.querySelectorAll('.item-card');
+      cards.forEach(card => {
+        const itemId = Number(card.dataset.itemId);
+        const isSelected = selectedItems.some(si => Number(si.itemId) === itemId);
+        const selectedItem = isSelected ? selectedItems.find(si => Number(si.itemId) === itemId) : null;
+        
+        card.classList.toggle('selected', isSelected);
+        
+        const input = card.querySelector('input[type="number"]');
+        const btn = card.querySelector('button');
+        
+        // Remove eventos antigos
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        if (isSelected && selectedItem) {
+            newInput.disabled = false;
+            newInput.min = selectedItem.quantidade_minima;
+            newInput.max = selectedItem.quantidade_maxima;
+            newInput.value = selectedItem.quantidade;
+            
+            newInput.addEventListener('change', (e) => updateItemQuantity(itemId, e.target.value));
+            
+            newBtn.className = 'btn btn-danger btn-sm';
+            newBtn.innerHTML = '<i class="fas fa-trash"></i> Remover';
+            newBtn.addEventListener('click', () => removeItem(itemId));
+        } else {
+            const item = currentItemsData.find(i => Number(i.id) === itemId);
+            const quantidadeDisponivel = item?.quantidade || item?.quantidade_disponivel || item?.qtd || item?.quantidade_real_disponivel || 0;
+            
+            newInput.disabled = true;
+            newInput.value = item?.quantidade_minima || 1;
+            
+            newBtn.className = 'btn btn-primary btn-sm add-item-btn';
+            newBtn.innerHTML = '<i class="fas fa-plus"></i> Adicionar';
+            newBtn.disabled = !item || quantidadeDisponivel <= 0;
+            if (!newBtn.disabled) {
+                newBtn.addEventListener('click', () => addItem(itemId));
+            }
+        }
+      });
+    }
+
+    function openModal(pedido = null) {
+      if (!canCreateOrder()) {
+        toast('Você não tem permissão para criar pedidos', 'error');
+        return;
+      }
+      
+      editingPedido = pedido;
+      resetModal();
+      fillModalSelects();
+      
+      if (pedido) {
+        document.getElementById('modalTitle').textContent = 'Editar Pedido';
+        
+        // Verifica permissão para editar
+        if (!isOwner(pedido) && !canApproveOrder()) {
+          toast('Você não pode editar este pedido', 'error');
+          return;
+        }
+        
+        // Preenche dados do pedido
+        document.getElementById('mNumero').value = pedido.numero || '';
+        document.getElementById('mData').value = pedido.data || '';
+        document.getElementById('mStatus').value = pedido.status || 'rascunho';
+        document.getElementById('mObs').value = pedido.observacao || '';
+        
+        // Seleciona licitação e fornecedor
+        const licSelect = document.getElementById('mLic');
+        licSelect.value = pedido.licitacaoId || '';
+        
+        // Se for um pedido em rascunho, mostra botão de enviar
+        if (String(pedido.status || '').toLowerCase() === 'rascunho') {
+          document.getElementById('sendBtn').style.display = 'inline-flex';
+        }
+        
+        // Para edição, vamos preencher os itens após carregar os dados da licitação
+        if (pedido.licitacaoId) {
+          // Dispara evento para carregar fornecedores
+          setTimeout(() => {
+            const event = new Event('change');
+            licSelect.dispatchEvent(event);
+            
+            // Aguarda carregar fornecedores e preencher o select
+            setTimeout(() => {
+              const fornSelect = document.getElementById('mForn');
+              if (fornSelect) {
+                fornSelect.value = pedido.fornecedorId || '';
+                
+                // Dispara evento para carregar itens
+                if (fornSelect.value) {
+                  setTimeout(() => {
+                    const event2 = new Event('change');
+                    fornSelect.dispatchEvent(event2);
+                    
+                    // Aguarda carregar itens e preencher os selecionados
+                    setTimeout(() => {
+                      if (Array.isArray(pedido.itens)) {
+                        selectedItems = pedido.itens.map(pi => {
+                          // Tenta encontrar o item nos dados atuais
+                          const currentItem = currentItemsData.find(i => 
+                            Number(i.id) === Number(pi.itemId || pi.id)
+                          );
+                          
+                          return {
+                            itemId: pi.itemId || pi.id,
+                            nome: pi.nome || currentItem?.nome || 'Item',
+                            descricao: pi.descricao || currentItem?.descricao || '',
+                            unidade: pi.unidade || currentItem?.unidade || 'UN',
+                            preco: pi.preco || currentItem?.preco || 0,
+                            quantidade: pi.quantidade || pi.qtd || 1,
+                            quantidade_minima: currentItem?.quantidade_minima || 1,
+                            quantidade_maxima: currentItem?.quantidade || currentItem?.quantidade_disponivel || currentItem?.qtd || Infinity,
+                            subtotal: (pi.quantidade || 1) * (pi.preco || 0)
+                          };
+                        }).filter(item => item.itemId);
+                        
+                        updateAvailableItems();
+                        updateSelectedItemsTable();
+                      }
+                    }, 1000);
+                  }, 500);
+                }
+              }
+            }, 500);
+          }, 100);
+        }
+      } else {
+        document.getElementById('modalTitle').textContent = 'Criar Pedido';
+        // Para novo pedido, sempre mostra botão de enviar
+        document.getElementById('sendBtn').style.display = 'inline-flex';
+      }
+      
+      modalPedido.classList.add('show');
+    }
+
+    function closeModal() {
+      modalPedido.classList.remove('show');
+      editingPedido = null;
+    }
+
+    async function savePedido(status = 'rascunho') {
+      const data = document.getElementById('mData').value;
+      const licId = document.getElementById('mLic').value;
+      const fornId = document.getElementById('mForn').value;
+      const obs = document.getElementById('mObs').value.trim();
+      
+      // Validações
+      if (!data || !licId || !fornId) {
+        toast('Preencha todos os campos obrigatórios', 'warning');
+        return;
+      }
+      
+      if (selectedItems.length === 0) {
+        toast('Adicione pelo menos um item ao pedido', 'warning');
+        return;
+      }
+      
+      // Valida quantidades
+      for (const item of selectedItems) {
+        if (item.quantidade < item.quantidade_minima) {
+          toast(`Item "${item.nome}": quantidade mínima é ${item.quantidade_minima}`, 'warning');
+          return;
+        }
+        if (item.quantidade_maxima && item.quantidade > item.quantidade_maxima) {
+          toast(`Item "${item.nome}": quantidade máxima é ${item.quantidade_maxima}`, 'warning');
+          return;
+        }
+      }
+      
+      // Calcula total
+      const total = selectedItems.reduce((sum, item) => sum + item.subtotal, 0);
+      
+      try {
+        document.getElementById('saveNote').textContent = 'Salvando...';
+        
+        const payload = {
+          data,
+          licitacaoId: Number(licId),
+          fornecedorId: Number(fornId),
+          status,
+          observacao: obs,
+          total,
+          itens: selectedItems.map(item => ({
+            itemId: item.itemId,
+            nome: item.nome,
+            unidade: item.unidade,
+            quantidade: item.quantidade,
+            preco: item.preco
+          }))
+        };
+        
+        let result;
+        if (editingPedido) {
+          result = await apiPut(`${API.pedidos}/${editingPedido.id}`, payload);
+        } else {
+          result = await apiPost(API.pedidos, payload);
+        }
+        
+        if (result?.success) {
+          const msg = status === 'rascunho' ? 'Pedido salvo como rascunho' : 'Pedido enviado para análise';
+          toast(`✅ ${msg}`, 'success');
+          closeModal();
+          
+          // Recarregar os dados
+          setTimeout(async () => {
+            await loadAllData();
+          }, 500);
+          
+        } else {
+          toast(result?.message || 'Erro ao salvar pedido', 'error');
+        }
+      } catch (e) {
+        toast('Erro ao salvar pedido: ' + e.message, 'error');
+        document.getElementById('saveNote').textContent = 'Erro ao salvar';
+      }
+    }
+
+    // =========================
+    // FUNÇÕES PARA AÇÕES NA TABELA
+    // =========================
+    async function viewPedido(id) {
+      try {
+        const data = await apiGet(`${API.pedidos}/${id}`);
+        if (!data?.success) {
+          toast('Erro ao carregar detalhes', 'error');
+          return;
+        }
+        
+        const pedido = data.pedido;
+        document.getElementById('viewModalTitle').textContent = `Pedido: ${pedido.numero || 'PED-' + pad(pedido.id, 6)}`;
+        
+        // Renderiza detalhes
+        const itensHtml = Array.isArray(pedido.itens) 
+          ? pedido.itens.map(it => `
+              <tr>
+                <td>${escapeHtml(it.nome || '')}</td>
+                <td>${it.quantidade || it.qtd || 0}</td>
+                <td>${escapeHtml(it.unidade || 'UN')}</td>
+                <td>${money(it.preco || 0)}</td>
+                <td>${money((it.quantidade || 0) * (it.preco || 0))}</td>
+              </tr>
+            `).join('')
+          : '<tr><td colspan="5" style="padding:16px;color:var(--app-muted)">Sem itens</td></tr>';
+        
+        // Busca histórico
+        const historicoHtml = Array.isArray(pedido.historico) 
+          ? pedido.historico.map(h => `
+              <tr>
+                <td>${escapeHtml(h.data || '')}</td>
+                <td>${escapeHtml(h.acao || '')}</td>
+                <td>${escapeHtml(h.usuario || '')}</td>
+                <td>${escapeHtml(h.observacao || '')}</td>
+              </tr>
+            `).join('')
+          : '<tr><td colspan="4" style="padding:16px;color:var(--app-muted)">Sem histórico</td></tr>';
+        
+        document.getElementById('viewModalContent').innerHTML = `
+          <div class="filters" style="padding:0;grid-template-columns:repeat(2,minmax(0,1fr))">
+            <div class="fg"><label>Número</label><div class="input" style="background:var(--app-card-2)">${escapeHtml(pedido.numero || 'PED-' + pad(pedido.id, 6))}</div></div>
+            <div class="fg"><label>Data</label><div class="input" style="background:var(--app-card-2)">${escapeHtml(formatDate(pedido.data))}</div></div>
+            <div class="fg"><label>Status</label><div class="input" style="background:var(--app-card-2)">${pillStatus(pedido.status)}</div></div>
+            <div class="fg"><label>Total</label><div class="input" style="background:var(--app-card-2);font-weight:900">${money(pedido.total)}</div></div>
+            <div class="fg"><label>Licitação</label><div class="input" style="background:var(--app-card-2)">${escapeHtml(findLicName(pedido.licitacaoId))}</div></div>
+            <div class="fg"><label>Fornecedor</label><div class="input" style="background:var(--app-card-2)">${escapeHtml(findFornName(pedido.fornecedorId))}</div></div>
+            ${pedido.observacao ? `
+            <div class="fg" style="grid-column:span 2">
+              <label>Observações</label>
+              <div class="input" style="background:var(--app-card-2);min-height:60px">${escapeHtml(pedido.observacao)}</div>
+            </div>` : ''}
+          </div>
+
+          <div class="hr"></div>
+
+          <div style="margin-top:16px">
+            <div style="font-weight:900;font-size:1.05rem;color:var(--primary);margin-bottom:12px">
+              <i class="fas fa-shopping-cart"></i> Itens do Pedido
+            </div>
+
+            <div class="twrap" style="max-height:260px">
+              <table style="min-width:980px">
+                <thead>
+                  <tr>
+                    <th>Item</th><th>Quantidade</th><th>Unidade</th><th>Preço Unit.</th><th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>${itensHtml}</tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div style="margin-top:16px">
+            <div style="font-weight:900;font-size:1.05rem;color:var(--primary);margin-bottom:12px">
+              <i class="fas fa-history"></i> Histórico
+            </div>
+
+            <div class="twrap" style="max-height:200px">
+              <table style="min-width:980px">
+                <thead>
+                  <tr>
+                    <th>Data</th><th>Ação</th><th>Usuário</th><th>Observação</th>
+                  </tr>
+                </thead>
+                <tbody>${historicoHtml}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
+        
+        viewModal.classList.add('show');
+      } catch (e) {
+        console.error('Erro ao visualizar pedido:', e);
+        toast('Erro ao carregar detalhes: ' + e.message, 'error');
+      }
+    }
+
+    function closeViewModal() {
+      viewModal.classList.remove('show');
+    }
+
+    async function deletePedido(id) {
+      const pedido = DB.pedidos.find(p => Number(p.id) === Number(id));
+      if (!pedido) {
+        toast('Pedido não encontrado', 'error');
+        return;
+      }
+      
+      // Verifica permissão
+      if (!isOwner(pedido) && !canApproveOrder()) {
+        toast('Você não pode excluir este pedido', 'error');
+        return;
+      }
+      
+      if (String(pedido.status || '').toLowerCase() !== 'rascunho' && !canApproveOrder()) {
+        toast('Só é possível excluir pedidos em rascunho', 'warning');
+        return;
+      }
+      
+      if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
+      
+      try {
+        await apiDelete(`${API.pedidos}/${id}`);
+        toast('Pedido excluído com sucesso', 'success');
+        await loadAllData();
+      } catch (e) {
+        toast('Erro ao excluir pedido: ' + e.message, 'error');
+      }
+    }
+
+    function openAnaliseModal(pedidoId) {
+      const pedido = DB.pedidos.find(p => Number(p.id) === Number(pedidoId));
+      if (!pedido) {
+        toast('Pedido não encontrado', 'error');
+        return;
+      }
+      
+      if (!canApproveOrder()) {
+        toast('Apenas gerentes e administradores podem analisar pedidos', 'error');
+        return;
+      }
+      
+      currentAnalisePedido = pedido;
+      document.getElementById('analiseModalTitle').textContent = `Analisar Pedido: ${pedido.numero || 'PED-' + pad(pedido.id, 6)}`;
+      document.getElementById('analiseAcao').value = '';
+      document.getElementById('analiseObservacao').value = '';
+      document.getElementById('observacaoContainer').style.display = 'none';
+      
+      analiseModal.classList.add('show');
+    }
+
+    function closeAnaliseModal() {
+      analiseModal.classList.remove('show');
+      currentAnalisePedido = null;
+    }
+
+    async function confirmAnalise() {
+      const acao = document.getElementById('analiseAcao').value;
+      const observacao = document.getElementById('analiseObservacao').value.trim();
+      
+      if (!acao) {
+        toast('Selecione uma ação', 'warning');
+        return;
+      }
+      
+      if (acao === 'reprovar' && !observacao) {
+        toast('Informe o motivo da reprovação', 'warning');
+        return;
+      }
+      
+      if (!currentAnalisePedido) {
+        toast('Pedido não encontrado', 'error');
+        return;
+      }
+      
+      if (!confirm(`Deseja ${acao} este pedido?`)) return;
+      
+      try {
+        const result = await apiPost(`/api/pedidos/analisar`, {
+        pedidoId: currentAnalisePedido.id,
+        userId: currentAnalisePedido.userId,
+        acao: acao,
+        observacao: observacao
+      });
+        
+        if (result?.success) {
+          const acaoLabel = (acao === 'aprovar') ? 'aprovado' : 'reprovado';
+          toast(`Pedido ${acaoLabel} com sucesso`, 'success');
+          closeAnaliseModal();
+          
+          // Recarregar todos os dados
+          setTimeout(async () => {
+            await loadAllData();
+          }, 300);
+        } else {
+          toast(result?.message || `Erro ao ${acao} pedido`, 'error');
+        }
+      } catch (e) {
+        console.error('Erro ao analisar pedido:', e);
+        toast(`Erro ao ${acao} pedido: ` + e.message, 'error');
+      }
+    }
+
+    // =========================
+    // EVENT LISTENERS PRINCIPAIS
+    // =========================
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Tema
+      initTheme();
+      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        const current = htmlEl.getAttribute('data-theme') || 'light';
+        applyTheme(current === 'light' ? 'dark' : 'light');
+      });
+
+      // Menu mobile
+      menuBtn.addEventListener('click', () => sidebar.classList.contains('show') ? closeSidebar() : openSidebar());
+      overlay.addEventListener('click', closeSidebar);
+
+      // Carrega usuário e dados
+      await loadUser();
+      await loadAllData();
+
+      // Filtros padrão (mês atual)
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      document.getElementById('fFrom').value = firstDay.toISOString().split('T')[0];
+      document.getElementById('fTo').value = lastDay.toISOString().split('T')[0];
+
+      // Botões principais
+      document.getElementById('refreshBtn').addEventListener('click', async () => {
+        toast('Atualizando dados...', 'info');
+        await loadAllData();
+      });
+
+      document.getElementById('newBtn').addEventListener('click', () => openModal());
+
+      // Filtros
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('fStatus').value = 'all';
+        document.getElementById('fQuery').value = '';
+        document.getElementById('fFrom').value = '';
+        document.getElementById('fTo').value = '';
+        renderTable();
+      });
+
+      document.getElementById('applyBtn').addEventListener('click', renderTable);
+
+      // Modal pedido
+      document.getElementById('closeModal').addEventListener('click', closeModal);
+      document.getElementById('cancelBtn').addEventListener('click', closeModal);
+      document.getElementById('saveBtn').addEventListener('click', () => savePedido('rascunho'));
+      document.getElementById('sendBtn').addEventListener('click', () => savePedido('enviado'));
+
+      // Modal visualização
+      document.getElementById('closeViewModal').addEventListener('click', closeViewModal);
+      document.getElementById('closeViewBtn').addEventListener('click', closeViewModal);
+
+      // Modal análise
+      document.getElementById('closeAnaliseModal').addEventListener('click', closeAnaliseModal);
+      document.getElementById('cancelAnaliseBtn').addEventListener('click', closeAnaliseModal);
+      document.getElementById('confirmAnaliseBtn').addEventListener('click', confirmAnalise);
+      
+      // Evento para mostrar/ocultar campo de observação
+      document.getElementById('analiseAcao').addEventListener('change', function() {
+        document.getElementById('observacaoContainer').style.display = 
+          this.value === 'reprovar' ? 'block' : 'none';
+      });
+
+      // Logout
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        if (confirm('Deseja realmente sair do sistema?')) {
+          localStorage.removeItem('compraPlus_token_v1');
+          localStorage.removeItem('access_token');
+          toast('Saindo do sistema...', 'info');
+          setTimeout(() => { window.location.href = 'index.html'; }, 500);
+        }
+      });
+
+      // Cliques na tabela
+      document.getElementById('tbody').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+
+        const action = btn.dataset.action;
+        const id = Number(btn.dataset.id);
+        
+        if (!id) return;
+
+        const pedido = DB.pedidos.find(p => Number(p.id) === id);
+        if (!pedido) {
+          toast('Pedido não encontrado', 'error');
+          return;
+        }
+
+        switch (action) {
+          case 'view':
+            viewPedido(id);
+            break;
+          case 'edit':
+            if (String(pedido.status || '').toLowerCase() !== 'rascunho') {
+              toast('Apenas pedidos em rascunho podem ser editados', 'warning');
+              return;
+            }
+            openModal(pedido);
+            break;
+          case 'delete':
+            deletePedido(id);
+            break;
+          case 'analisar':
+            openAnaliseModal(id);
+            break;
+        }
+      });
+
+      // Tecla ESC para fechar modais
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (modalPedido.classList.contains('show')) closeModal();
+          if (sidebar.classList.contains('show')) closeSidebar();
+          if (viewModal.classList.contains('show')) closeViewModal();
+          if (analiseModal.classList.contains('show')) closeAnaliseModal();
+        }
+      });
+
+      toast('Sistema de pedidos carregado!', 'success');
+    });
+  </script>
+</body>
+</html>
