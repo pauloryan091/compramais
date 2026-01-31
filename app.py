@@ -5,8 +5,6 @@ import sqlite3
 import json
 import base64
 import re
-import queue
-import threading
 import time
 import logging
 import io
@@ -14,7 +12,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any, Dict, Optional, Tuple, List
 
-from flask import Flask, jsonify, request, send_from_directory, Response, stream_with_context
+from flask import Flask, jsonify, request, send_from_directory, Response
 from flask_cors import CORS
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -48,7 +46,6 @@ TOKEN_EXPIRES_SECONDS = int(os.environ.get("COMPRA_PLUS_TOKEN_EXPIRES", "86400")
 OPEN_MODE = False
 APP_BUILD = os.environ.get('COMPRA_PLUS_BUILD', 'revised_2026-01-25')
 SQLITE_TIMEOUT_SECONDS = float(os.environ.get("COMPRA_PLUS_DB_TIMEOUT", "12.0"))
-SSE_PING_SECONDS = int(os.environ.get("COMPRA_PLUS_SSE_PING", "10"))
 
 app = Flask(__name__, static_folder=".", static_url_path="")
 
@@ -431,7 +428,7 @@ def can_access_page(role: str, page: str) -> bool:
     return page in pages_for_role(role)
 
 # =====================================================
-# AUTH - FUNÇÕES ATUALIZADAS
+# AUTH
 # =====================================================
 def make_token(user_id: int, role: str) -> str:
     payload = {"uid": user_id, "role": role, "iat": now_utc_ts()}
@@ -447,22 +444,16 @@ def parse_bearer_token() -> Optional[str]:
         return None
     return parts[1].strip() or None
 
-def parse_bearer_token_for_sse() -> Optional[str]:
-    """Versão especial para SSE que aceita token via query string"""
-    # Primeiro tenta no header (padrão)
-    auth = request.headers.get("Authorization", "")
-    if auth:
-        parts = auth.split(" ", 1)
-        if len(parts) == 2 and parts[0].lower() == "bearer":
-            token = parts[1].strip()
-            if token:
-                return token
-    
-    # Depois tenta via query string (fallback para frontend)
-    token_from_query = request.args.get("token")
-    if token_from_query:
-        return token_from_query
-    
+def parse_bearer_token_allow_query() -> Optional[str]:
+    """Aceita token no header Bearer OU via query string (?token=...).
+    Útil para casos como abrir PDF em nova aba (não dá para setar header Authorization).
+    """
+    token = parse_bearer_token()
+    if token:
+        return token
+    token_qs = request.args.get("token")
+    if token_qs:
+        return str(token_qs).strip() or None
     return None
 
 def verify_token(token: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
@@ -480,7 +471,7 @@ def verify_token(token: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
         return None, "Token inválido"
 
 # =====================================================
-# DECORATORS ATUALIZADOS
+# DECORATORS
 # =====================================================
 def login_required(fn):
     @wraps(fn)
@@ -505,44 +496,6 @@ def login_required(fn):
         return fn(*args, **kwargs)
 
     return wrapper
-
-def login_required_for_sse(fn):
-    """Decorator especial para SSE que aceita token via query string"""
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        token = parse_bearer_token_for_sse()
-        if not token:
-            return jsonify({"success": False, "message": "Token ausente"}), 401
-
-        payload, err = verify_token(token)
-        if err:
-            return jsonify({"success": False, "message": err}), 401
-
-        conn = get_db_connection()
-        user = conn.execute("SELECT * FROM users WHERE id = ?", (payload["uid"],)).fetchone()
-        conn.close()
-
-        if not user:
-            return jsonify({"success": False, "message": "Usuário não encontrado"}), 401
-
-        request.current_user = dict(user)
-        request.token_payload = payload
-        return fn(*args, **kwargs)
-
-    return wrapper
-
-
-def parse_bearer_token_allow_query() -> Optional[str]:
-    """Aceita token no header Bearer OU via query string (?token=...).
-    Útil para casos como abrir PDF em nova aba (não dá para setar header Authorization).
-    """
-    token = parse_bearer_token()
-    if token:
-        return token
-    token_qs = request.args.get("token")
-    if token_qs:
-        return str(token_qs).strip() or None
-    return None
 
 def login_required_allow_query(fn):
     """Como login_required, mas permite token na query string (fallback)."""
@@ -585,26 +538,6 @@ def role_required(*allowed_roles: str):
             return fn(*args, **kwargs)
         return wrapper
     return decorator
-
-# =====================================================
-# SSE
-# =====================================================
-_subs_lock = threading.Lock()
-_subs: list[queue.Queue[str]] = []
-
-def _publish(event: str, data: Any = None) -> None:
-    payload = {"event": event, "data": data, "ts": now_utc_ts()}
-    msg = f"event: {event}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
-    with _subs_lock:
-        dead = []
-        for q in _subs:
-            try:
-                q.put_nowait(msg)
-            except Exception:
-                dead.append(q)
-        for q in dead:
-            if q in _subs:
-                _subs.remove(q)
 
 # =====================================================
 # KV Store
@@ -1035,9 +968,6 @@ def criar_pedido_validado(user_id: int, user_name: str, dados_pedido: Dict[str, 
                 if item_id and quantidade > 0:
                     atualizar_quantidade_item_licitacao(item_id, quantidade)
         
-        # Publicar evento
-        _publish("data_updated", {"key": get_user_pedidos_key(user_id)})
-        
         logger.info(f"Pedido criado: {pedido_numero} pelo usuário {user_id}")
         
         return True, "Pedido criado com sucesso", novo_pedido
@@ -1047,7 +977,7 @@ def criar_pedido_validado(user_id: int, user_name: str, dados_pedido: Dict[str, 
         return False, f"Erro ao criar pedido: {str(e)}", None
 
 # =====================================================
-# NOTIFICAÇÕES - FUNÇÕES CORRIGIDAS
+# NOTIFICAÇÕES
 # =====================================================
 def notification_to_dict(row) -> Dict[str, Any]:
     """Converte uma linha do banco em dicionário de notificação"""
@@ -1084,9 +1014,6 @@ def create_notification(pedido_id: int, titulo: str, descricao: str, tipo: str =
             )
         )
         conn.commit()
-        
-        # Publicar evento SSE para notificações
-        _publish("notification_created", {"pedidoId": pedido_id})
         
         logger.info(f"Notificação criada: {titulo} para pedido {pedido_id}")
         return True
@@ -1267,7 +1194,7 @@ def login():
     )
 
 # =====================================================
-# LICITAÇÕES ENDPOINTS - NOVOS
+# LICITAÇÕES ENDPOINTS
 # =====================================================
 @app.route("/api/licitacoes", methods=["GET"])
 @login_required
@@ -1475,9 +1402,6 @@ def mark_notification_read():
         
         conn.commit()
         
-        # Publicar evento SSE
-        _publish("notification_read", {"notificationId": notification_id})
-        
         logger.info(f"Notificação {notification_id} marcada como lida")
         
         return jsonify({
@@ -1533,8 +1457,6 @@ def mark_all_notifications_read():
         conn.commit()
         
         if count_to_mark > 0:
-            # Publicar evento SSE
-            _publish("notifications_all_read", {"count": count_to_mark})
             logger.info(f"{count_to_mark} notificações marcadas como lidas")
         
         return jsonify({
@@ -1849,9 +1771,6 @@ def update_pedido(pedido_id: int):
                 fornecedor_nome=fornecedor_nome
             )
         
-        # Publicar evento
-        _publish("data_updated", {"key": get_user_pedidos_key(owner_id)})
-        
         logger.info(f"Pedido {pedido_id} atualizado por {user_name}")
         
         return jsonify({
@@ -1903,9 +1822,6 @@ def delete_pedido(pedido_id: int):
         if not save_user_pedidos(owner_id, new_pedidos):
             return jsonify({"success": False, "message": "Erro ao excluir pedido"}), 500
         
-        # Publicar evento
-        _publish("data_updated", {"key": get_user_pedidos_key(owner_id)})
-        
         logger.info(f"Pedido {pedido_id} excluído por usuário {user_id}")
         
         return jsonify({
@@ -1944,7 +1860,7 @@ def analisar_pedido():
         
         # Obter pedidos do owner
         pedidos = get_user_pedidos(owner_id)
-        pedido_index = next((i for i, p in enumerate(pedidos) if p.get("id") == pedido_id), -1)
+        pedido_index = next((i for i, p in enumerate(pedidos if pedidos else []) if p.get("id") == pedido_id), -1)
         
         if pedido_index == -1:
             return jsonify({"success": False, "message": "Pedido não encontrado"}), 404
@@ -1984,10 +1900,6 @@ def analisar_pedido():
             acao=acao,
             observacao=observacao
         )
-        
-        # Publicar eventos SSE
-        _publish("data_updated", {"key": get_user_pedidos_key(owner_id)})
-        _publish("notification_created", {"pedidoId": pedido_id})
         
         logger.info(f"Pedido {pedido_id} {novo_status} por {usuario}")
         
@@ -2041,7 +1953,6 @@ def create_user():
             (name, email, generate_password_hash(password), role),
         )
         conn.commit()
-        _publish("data_updated", {"key": "users"})
         return jsonify({"success": True, "message": "Usuário criado com sucesso"})
     except sqlite3.IntegrityError:
         return jsonify({"success": False, "message": "Email já cadastrado"}), 409
@@ -2083,7 +1994,6 @@ def update_user(uid: int):
             conn.execute("UPDATE users SET name=?, role=? WHERE id=?", (new_name, new_role, uid))
 
         conn.commit()
-        _publish("data_updated", {"key": "users"})
         return jsonify({"success": True, "message": "Usuário atualizado"})
     except Exception as e:
         logger.error(f"Erro ao atualizar usuário: {e}")
@@ -2104,7 +2014,6 @@ def delete_user(uid: int):
             return jsonify({"success": False, "message": "Usuário não encontrado"}), 404
         conn.execute("DELETE FROM users WHERE id=?", (uid,))
         conn.commit()
-        _publish("data_updated", {"key": "users"})
         return jsonify({"success": True, "message": "Usuário removido"})
     except Exception as e:
         logger.error(f"Erro ao excluir usuário: {e}")
@@ -2193,7 +2102,6 @@ def create_fornecedor():
         )
         conn.commit()
         new_id = cur.lastrowid
-        _publish("data_updated", {"key": "fornecedores_db"})
         return jsonify({"success": True, "id": new_id})
     except sqlite3.IntegrityError:
         return jsonify({"success": False, "message": "CNPJ já cadastrado"}), 409
@@ -2244,7 +2152,6 @@ def update_fornecedor(fid: int):
             (razao, fantasia, cnpj, inscricao, email, telefone, endereco, contato, status, fid),
         )
         conn.commit()
-        _publish("data_updated", {"key": "fornecedores_db"})
         return jsonify({"success": True})
     except sqlite3.IntegrityError:
         return jsonify({"success": False, "message": "CNPJ já cadastrado em outro fornecedor"}), 409
@@ -2269,7 +2176,6 @@ def delete_fornecedor(fid: int):
 
         cur.execute("DELETE FROM fornecedores WHERE id = ?", (fid,))
         conn.commit()
-        _publish("data_updated", {"key": "fornecedores_db"})
         return jsonify({"success": True})
     except Exception as e:
         logger.error(f"Erro ao excluir fornecedor: {e}")
@@ -2312,7 +2218,7 @@ def analisar_pedido_detalhe(pedido_id: int):
         
         # Obter pedidos do owner
         pedidos = get_user_pedidos(owner_id)
-        pedido_index = next((i for i, p in enumerate(pedidos) if p.get("id") == pedido_id), -1)
+        pedido_index = next((i for i, p in enumerate(pedidos if pedidos else []) if p.get("id") == pedido_id), -1)
         
         if pedido_index == -1:
             logger.warning(f"Pedido {pedido_id} não encontrado no índice")
@@ -2384,10 +2290,6 @@ def analisar_pedido_detalhe(pedido_id: int):
             acao=acao,
             observacao=observacao
         )
-        
-        # Publicar eventos SSE
-        _publish("data_updated", {"key": get_user_pedidos_key(owner_id)})
-        _publish("notification_created", {"pedidoId": pedido_id})
         
         logger.info(f"✅ Pedido {pedido_id} {novo_status} por {usuario}")
         
@@ -2510,7 +2412,6 @@ def sync_push():
             if not save_user_pedidos(user_id, sanitized):
                 return jsonify({"success": False, "message": "Erro ao salvar pedidos"}), 500
 
-            _publish("data_updated", {"key": get_user_pedidos_key(user_id)})
             return jsonify({"success": True, "message": "Pedidos salvos com sucesso"})
 
         # Admin/Gerente: pode enviar lista completa; distribuímos por userId
@@ -2530,13 +2431,11 @@ def sync_push():
         for uid, plist in grouped.items():
             save_user_pedidos(uid, plist)
 
-        _publish("data_updated", {"key": "compraPlusPedidos_v1"})
         return jsonify({"success": True, "message": "Pedidos salvos com sucesso"})
 
     if not kv_set(key, value):
         return jsonify({"success": False, "message": "Erro ao salvar no KV Store"}), 500
 
-    _publish("data_updated", {"key": key})
     return jsonify({"success": True, "message": "Dados salvos com sucesso"})
 
 # =====================================================
@@ -2938,9 +2837,6 @@ def api_health():
             except Exception as e:
                 table_status[table] = f"ERRO: {str(e)}"
 
-        with _subs_lock:
-            sse_clients = len(_subs)
-
         conn.close()
 
         return jsonify(
@@ -2952,15 +2848,12 @@ def api_health():
                 "build": APP_BUILD,
                 "db": "OK",
                 "tables": table_status,
-                "sse_clients": sse_clients,
                 "environment": {"flask_debug": app.debug},
             }
         )
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return jsonify({"success": False, "status": "unhealthy", "error": str(e), "timestamp": datetime.now().isoformat()}), 500
-
-
 
 # =====================================================
 # BACKUP / RESTORE (SQLite)
@@ -3123,60 +3016,6 @@ def api_backup_restore():
         return jsonify({"success": False, "message": str(e)}), 500
 
 # =====================================================
-# SSE ENDPOINT
-# =====================================================
-@app.route("/api/events", methods=["GET"])
-@login_required_for_sse
-def api_events():
-    user = getattr(request, "current_user", {}) or {}
-    user_name = user.get("name", "Anônimo") if isinstance(user, dict) else "Anônimo"
-
-    @stream_with_context
-    def generate():
-        q = queue.Queue(maxsize=200)
-
-        with _subs_lock:
-            _subs.append(q)
-            total = len(_subs)
-
-        logger.info(f"Cliente SSE conectado: {user_name}. Total: {total}")
-
-        try:
-            hello_payload = {"message": "Conectado ao Compra+ SSE", "user": user_name, "ts": now_utc_ts()}
-            yield f"event: hello\ndata: {json.dumps(hello_payload, ensure_ascii=False)}\n\n"
-
-            last_ping = time.time()
-            while True:
-                try:
-                    ev = q.get(timeout=1.0)
-                    yield ev
-                except queue.Empty:
-                    if time.time() - last_ping >= SSE_PING_SECONDS:
-                        last_ping = time.time()
-                        yield f": ping {now_utc_ts()}\n\n"
-        except GeneratorExit:
-            logger.info(f"Cliente SSE desconectado: {user_name}")
-        except Exception as e:
-            logger.error(f"Erro no stream SSE para {user_name}: {e}")
-        finally:
-            with _subs_lock:
-                if q in _subs:
-                    _subs.remove(q)
-                remaining = len(_subs)
-            logger.info(f"Cliente SSE desconectado: {user_name}. Restantes: {remaining}")
-
-    return Response(
-        generate(),
-        mimetype="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-            "Content-Type": "text/event-stream; charset=utf-8",
-        },
-    )
-
-# =====================================================
 # ERROR HANDLERS
 # =====================================================
 @app.errorhandler(404)
@@ -3205,7 +3044,6 @@ if __name__ == "__main__":
     print("=" * 60)
     print("🌐 URL: http://127.0.0.1:5000")
     print(f"🗄️  Banco: {DATABASE}")
-    print(f"📡 SSE: /api/events (ping: {SSE_PING_SECONDS}s)")
     print("📋 Endpoints principais:")
     print("  • /api/auth/check")
     print("  • /api/login (Login obrigatório!)")
@@ -3215,7 +3053,7 @@ if __name__ == "__main__":
     print("  • /api/licitacoes (NOVO) ✅")
     print("  • /api/licitacoes/<id>/itens/<forn_id> (NOVO) ✅")
     print("  • /api/sync/pull | /api/sync/push ✅")
-    print("  • /api/stats | /api/health | /api/events ✅")
+    print("  • /api/stats | /api/health ✅")
     print("  • /api/notifications (CRUD) 🔔")
     print("=" * 60)
     print("\n🔥 Sistema de pedidos por usuário ativo!")
@@ -3226,6 +3064,7 @@ if __name__ == "__main__":
     print("   - Controle de quantidades em licitações ✅")
     print("   - VERSÃO TOLERANTE: permite itens não encontrados")
     print("   - CORREÇÃO APLICADA: análise de pedidos mais flexível ✅")
+    print("   - SSE REMOVIDO: sem timeouts no Render ✅")
     print("=" * 60 + "\n")
 
     app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False, threaded=True)
